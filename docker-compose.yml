@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  ultrathink:
+    build: .
+    image: ultrathink:latest
+    container_name: ultrathink_app
+    env_file:
+      - .env
+    volumes:
+      - ./output:/app/output
+      - ./logs:/app/logs
+      - ./cache:/app/cache
+      - ./previews:/app/previews
+      - ./config:/app/config:ro
+    environment:
+      - TZ=UTC
+    restart: unless-stopped
+    command: python run.py --once
+    networks:
+      - ultrathink_network
+
+  # Optional: Run as a scheduled service
+  ultrathink_scheduler:
+    build: .
+    image: ultrathink:latest
+    container_name: ultrathink_scheduler
+    env_file:
+      - .env
+    volumes:
+      - ./output:/app/output
+      - ./logs:/app/logs
+      - ./cache:/app/cache
+      - ./previews:/app/previews
+      - ./config:/app/config:ro
+    environment:
+      - TZ=UTC
+    restart: unless-stopped
+    # Run daily at 8 AM UTC
+    command: sh -c "while true; do python run.py --once; sleep 86400; done"
+    networks:
+      - ultrathink_network
+    profiles:
+      - scheduler
+
+  # Optional: PostgreSQL for storing historical data
+  postgres:
+    image: postgres:15-alpine
+    container_name: ultrathink_db
+    environment:
+      POSTGRES_DB: ultrathink
+      POSTGRES_USER: ultrathink
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ultrathink123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - ultrathink_network
+    profiles:
+      - with-db
+
+  # Optional: Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: ultrathink_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - ultrathink_network
+    profiles:
+      - with-cache
+
+  # Development: Run with auto-reload
+  ultrathink_dev:
+    build:
+      context: .
+      target: development
+    image: ultrathink:dev
+    container_name: ultrathink_dev
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    environment:
+      - TZ=UTC
+      - PYTHONUNBUFFERED=1
+    command: python run.py --test --preview
+    networks:
+      - ultrathink_network
+    profiles:
+      - development
+
+networks:
+  ultrathink_network:
+    driver: bridge
+
+volumes:
+  postgres_data:

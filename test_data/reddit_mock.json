@@ -1,0 +1,95 @@
+[
+  {
+    "id": "test_reddit_1",
+    "title": "Microsoft announces 15% price increase for Azure enterprise subscriptions",
+    "content": "Just got the email from our Microsoft rep. They're increasing Azure prices by 15% across the board for enterprise customers starting Q2 2024. This is going to blow our IT budget. Anyone else seeing this? Time to look at alternatives or negotiate hard.",
+    "url": "https://reddit.com/r/sysadmin/comments/test1",
+    "author": "cloudadmin123",
+    "subreddit": "sysadmin",
+    "score": 342,
+    "num_comments": 89,
+    "created_at": "2024-01-15T10:30:00Z",
+    "top_comments": [
+      {
+        "text": "Same here. Our CDW rep confirmed the increase. They're offering some discount if we commit to 3-year terms.",
+        "score": 156,
+        "author": "itmanager456"
+      },
+      {
+        "text": "Time to dust off those AWS cost calculators. This is getting ridiculous.",
+        "score": 89,
+        "author": "devops_guru"
+      }
+    ],
+    "flair": "Vendor Alert",
+    "is_self": true
+  },
+  {
+    "id": "test_reddit_2",
+    "title": "CrowdStrike vs SentinelOne pricing - 2024 comparison",
+    "content": "We're up for renewal and got quotes from both. CrowdStrike came in at $42/endpoint/year for Falcon Pro. SentinelOne offered $38/endpoint/year for their Complete package. Both are about 20% higher than last year. Anyone have success negotiating these down?",
+    "url": "https://reddit.com/r/cybersecurity/comments/test2",
+    "author": "securitypro99",
+    "subreddit": "cybersecurity",
+    "score": 234,
+    "num_comments": 67,
+    "created_at": "2024-01-14T14:20:00Z",
+    "top_comments": [
+      {
+        "text": "We got CrowdStrike down to $36/endpoint by threatening to switch. Had to commit to 10k+ endpoints though.",
+        "score": 98,
+        "author": "ciso_throwaway"
+      }
+    ],
+    "flair": "Pricing",
+    "is_self": true
+  },
+  {
+    "id": "test_reddit_3",
+    "title": "Dell server prices up 30% since last quarter - supply chain issues or greed?",
+    "content": "Getting quotes for new PowerEdge servers and they're 30% more expensive than Q4 2023. Dell blaming chip shortages but I'm seeing the same from HPE. Is this industry-wide? Budget is already shot for this year.",
+    "url": "https://reddit.com/r/sysadmin/comments/test3",
+    "author": "infrastructure_mgr",
+    "subreddit": "sysadmin",
+    "score": 189,
+    "num_comments": 45,
+    "created_at": "2024-01-13T09:15:00Z",
+    "top_comments": [],
+    "flair": "Hardware",
+    "is_self": true
+  },
+  {
+    "id": "test_reddit_4",
+    "title": "Fortinet announces new licensing model - significant cost implications",
+    "content": "Heads up - Fortinet is changing their FortiGate licensing model. Instead of perpetual licenses with support, it's moving to subscription-only. Our TCO calculations show a 40% increase over 3 years. Sales rep confirmed this is rolling out globally.",
+    "url": "https://reddit.com/r/fortinet/comments/test4",
+    "author": "network_admin",
+    "subreddit": "fortinet",
+    "score": 156,
+    "num_comments": 34,
+    "created_at": "2024-01-12T16:45:00Z",
+    "top_comments": [],
+    "flair": "Licensing",
+    "is_self": true
+  },
+  {
+    "id": "test_reddit_5",
+    "title": "TD SYNNEX offering aggressive discounts on Cisco gear - 25% off list",
+    "content": "Our TD SYNNEX rep just offered 25% off list price for Cisco switches and routers if we order by end of month. Apparently they have excess inventory. Anyone else seeing these deals? Might be a good time to refresh network infrastructure.",
+    "url": "https://reddit.com/r/networking/comments/test5",
+    "author": "neteng2024",
+    "subreddit": "networking",
+    "score": 267,
+    "num_comments": 78,
+    "created_at": "2024-01-11T11:30:00Z",
+    "top_comments": [
+      {
+        "text": "CDW matched the discount when we showed them the quote. Worth shopping around.",
+        "score": 124,
+        "author": "procurement_ninja"
+      }
+    ],
+    "flair": "Deals",
+    "is_self": true
+  }
+]

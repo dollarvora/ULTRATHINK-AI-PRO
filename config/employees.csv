@@ -1,0 +1,7 @@
+name,email,role,active,keywords
+John Smith,john.smith@company.com,pricing_analyst,True,"dell,cisco,microsoft"
+Sarah Johnson,sarah.johnson@company.com,procurement_manager,True,"crowdstrike,fortinet,cdw"
+Mike Chen,mike.chen@company.com,bi_strategy,True,"market trends,competitive"
+Emily Davis,emily.davis@company.com,pricing_analyst,True,"software,licensing"
+Robert Wilson,robert.wilson@company.com,procurement_manager,True,"hardware,distributors"
+Lisa Anderson,lisa.anderson@company.com,bi_strategy,True,"cybersecurity,cloud"
