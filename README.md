@@ -3,6 +3,7 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-supported-brightgreen)](https://www.docker.com/)
 [![Portfolio](https://img.shields.io/badge/status-portfolio_demo-blue.svg)](#)
+[![License: Proprietary](https://img.shields.io/badge/license-proprietary-red.svg)](./LICENSE)
 
 ULTRATHINK is a production-grade automated pricing intelligence system that leverages AI to collect, analyze, and deliver actionable pricing insights from multiple data sources to enterprise teams.
 
