@@ -17,11 +17,11 @@ from fetchers.google_fetcher import GoogleFetcher
 @pytest.fixture
 def test_config():
     """Load test configuration"""
-    with open('config/config.json', 'r') as f:
-        config = json.load(f)
+    from config.config import CONFIG
     
-    # Add mock credentials
-    config['credentials'] = {
+    # Create a copy with test credentials
+    test_config = CONFIG.copy()
+    test_config['credentials'] = {
         'reddit': {
             'client_id': 'test_id',
             'client_secret': 'test_secret',
@@ -33,17 +33,17 @@ def test_config():
         },
         'openai': {
             'api_key': 'test_key'
-        },
-        'email': {
-            'smtp_host': 'localhost',
-            'smtp_port': 1025,
-            'smtp_user': 'test@example.com',
-            'smtp_password': 'test',
-            'from_email': 'test@example.com'
         }
     }
+    test_config['email'] = {
+        'smtp_host': 'localhost',
+        'smtp_port': 1025,
+        'smtp_user': 'test@example.com',
+        'smtp_password': 'test',
+        'from_email': 'test@example.com'
+    }
     
-    return config
+    return test_config
 
 
 class TestRedditFetcher:
