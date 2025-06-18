@@ -4,16 +4,29 @@ Copyright (c) 2025 ULTRATHINK
 
 All rights reserved.
 
-This software and associated documentation files (the "Software") are the
-proprietary and confidential information of the copyright holder.
+This software and its associated files (the "Software") are proprietary and confidential.  
+The Software is made available for personal review and demonstration purposes only.
 
-The Software may not be used, copied, modified, distributed, or disclosed
-to any third party without the express written permission of the copyright holder.
+PROHIBITED USES:
+You may not:
+- Use, copy, modify, distribute, sublicense, or sell this Software
+- Share or deploy any portion of it in commercial or public-facing systems  
+- Create derivative works based on this Software
+- Reverse engineer, decompile, or disassemble this Software
+- Remove or alter any proprietary notices or labels
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+PERMITTED USES:
+You may:
+- View the source code for educational and review purposes
+- Reference this project in discussions about software architecture or AI systems
+- Link to this repository in professional contexts
+
+DISCLAIMER:
+This Software is provided "AS IS", without warranty of any kind, express or implied.  
+In no event shall the authors or copyright holders be liable for any claim,
+damages, or other liability in connection with the Software or its use.
+
+ENFORCEMENT:
+Unauthorized use is a violation of applicable copyright laws and may result in legal action.
+
+For licensing inquiries or permission requests, contact: dollarvora@icloud.com

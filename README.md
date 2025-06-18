@@ -1,8 +1,8 @@
 # 🧠 ULTRATHINK - AI-Powered Pricing Intelligence
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Docker](https://img.shields.io/badge/docker-supported-brightgreen)](https://www.docker.com/)
+[![Portfolio](https://img.shields.io/badge/status-portfolio_demo-blue.svg)](#)
 
 ULTRATHINK is a production-grade automated pricing intelligence system that leverages AI to collect, analyze, and deliver actionable pricing insights from multiple data sources to enterprise teams.
 
@@ -269,19 +269,23 @@ Run with increased logging:
 LOG_LEVEL=DEBUG python run.py --once
 ```
 
-## 📝 License
+## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+⚠️ **ULTRATHINK is a proprietary project.**  
+
+This codebase is shared publicly for **demonstration and portfolio purposes only**.  
+
+**Use, copying, modification, redistribution, or commercialization is strictly prohibited** without express written permission from the copyright holder.
+
+Please see the [LICENSE](./LICENSE) file for full terms.
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Add tests for new functionality
-5. Ensure `python manage.py validate` passes
-6. Push to branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+This is a **proprietary portfolio project** and is not accepting external contributions.  
+
+The repository is public to showcase development capabilities and system architecture.  
+
+For questions about licensing or collaboration opportunities, please reach out directly.
 
 ## 📞 Support
 
