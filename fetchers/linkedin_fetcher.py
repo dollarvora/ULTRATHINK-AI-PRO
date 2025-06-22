@@ -90,7 +90,7 @@ class LinkedInFetcher(BaseFetcher):
             await page.fill('input[name="session_key"]', creds['username'])
             await page.fill('input[name="session_password"]', creds['password'])
             await page.click('button[type="submit"]')
-            await page.wait_for_navigation(wait_until='networkidle')
+            await page.wait_for_load_state('networkidle')
 
             storage = await page.context.storage_state()
             session_file = Path('cache/linkedin_session.json')

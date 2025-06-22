@@ -1,0 +1,61 @@
+{
+  "vendors": {
+    "hardware": [
+      "Dell", "HPE", "Hewlett Packard Enterprise", "HP", "Cisco", "Lenovo", 
+      "IBM", "Intel", "AMD", "NVIDIA", "NetApp", "Pure Storage", "EMC"
+    ],
+    "software": [
+      "Microsoft", "Oracle", "SAP", "VMware", "Adobe", "Salesforce", 
+      "ServiceNow", "Atlassian", "JetBrains", "Slack", "Zoom", "Teams"
+    ],
+    "security": [
+      "CrowdStrike", "Fortinet", "Palo Alto Networks", "Check Point", 
+      "Zscaler", "SentinelOne", "Proofpoint", "Symantec", "McAfee", 
+      "Trend Micro", "FireEye", "Splunk"
+    ],
+    "cloud": [
+      "Amazon", "AWS", "Microsoft Azure", "Azure", "Google Cloud", "GCP", 
+      "IBM Cloud", "Oracle Cloud", "Alibaba Cloud", "DigitalOcean"
+    ],
+    "distributors": [
+      "TD Synnex", "Ingram Micro", "CDW", "Insight Global", "SHI", 
+      "Arrow Electronics", "Avnet", "Tech Data", "Softchoice", "Computacenter"
+    ]
+  },
+  "pricing_keywords": [
+    "price increase", "price hike", "cost increase", "pricing change",
+    "discount", "promotion", "deal", "sale", "rebate", "incentive",
+    "margin", "markup", "pricing strategy", "cost reduction",
+    "licensing change", "subscription model", "pricing tier",
+    "volume discount", "enterprise pricing", "SMB pricing"
+  ],
+  "urgency_high": [
+    "urgent", "critical", "immediate", "breaking", "emergency",
+    "acquisition", "merger", "security breach", "vulnerability",
+    "end of life", "EOL", "discontinuation", "recall",
+    "lawsuit", "compliance", "regulatory", "audit"
+  ],
+  "urgency_medium": [
+    "update", "upgrade", "new release", "feature", "enhancement",
+    "partnership", "integration", "expansion", "growth",
+    "quarterly results", "earnings", "forecast", "outlook",
+    "roadmap", "strategy", "initiative", "program"
+  ],
+  "urgency_low": [
+    "maintenance", "patch", "bugfix", "optimization", "performance",
+    "documentation", "training", "certification", "webinar",
+    "conference", "event", "announcement", "newsletter"
+  ],
+  "competitive_intelligence": [
+    "competitor", "competition", "market share", "industry report",
+    "analyst report", "benchmark", "comparison", "alternative",
+    "migration", "replacement", "switch", "evaluation",
+    "RFP", "RFQ", "tender", "procurement", "vendor selection"
+  ],
+  "business_impact": [
+    "revenue", "profit", "margin", "ROI", "cost savings",
+    "efficiency", "productivity", "scalability", "growth",
+    "market opportunity", "customer satisfaction", "retention",
+    "acquisition", "churn", "LTV", "customer lifetime value"
+  ]
+}

@@ -6,7 +6,7 @@ import uuid
 import json
 from datetime import datetime
 from dotenv import load_dotenv
-import pandas as pd
+import csv
 
 # Load environment variables from .env file
 load_dotenv()
@@ -63,9 +63,20 @@ async def run_pipeline(preview=False):
     
     # ✅ ADD THIS: Load employees from CSV
     try:
-        employees_df = pd.read_csv(config['email']['employee_csv'])
-        active_employees = employees_df[employees_df['active'] == True]
-        config['employees'] = active_employees.to_dict('records')
+        employees = []
+        with open(config['email']['employee_csv'], 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                # Convert 'active' string to boolean
+                if row['active'].lower() == 'true':
+                    employees.append({
+                        'name': row['name'],
+                        'email': row['email'],
+                        'role': row['role'],
+                        'active': True,
+                        'keywords': row['keywords']
+                    })
+        config['employees'] = employees
         logger.info(f"Loaded {len(config['employees'])} active employees")
     except Exception as e:
         logger.error(f"Failed to load employees: {e}")

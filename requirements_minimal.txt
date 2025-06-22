@@ -1,0 +1,13 @@
+# Essential dependencies only
+python-dotenv==1.0.0
+requests==2.31.0
+
+# Data fetching
+praw==7.7.1  # Reddit API
+google-api-python-client==2.108.0  # Google CSE
+
+# AI/ML
+openai==0.28.1  # GPT summarization
+
+# Email
+Jinja2==3.1.2

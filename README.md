@@ -1,11 +1,39 @@
-# 🧠 ULTRATHINK - AI-Powered Pricing Intelligence
+# 🧠 ULTRATHINK Enhanced - Advanced AI-Powered Pricing Intelligence
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-supported-brightgreen)](https://www.docker.com/)
-[![Portfolio](https://img.shields.io/badge/status-portfolio_demo-blue.svg)](#)
+[![Portfolio](https://img.shields.io/badge/status-enhanced_version-blue.svg)](#)
 [![License: Proprietary](https://img.shields.io/badge/license-proprietary-red.svg)](./LICENSE)
 
-ULTRATHINK is a production-grade automated pricing intelligence system that leverages AI to collect, analyze, and deliver actionable pricing insights from multiple data sources to enterprise teams.
+**ULTRATHINK Enhanced** is the next-generation version of the [original ULTRATHINK system](https://github.com/dollarvora/ultrathink) with significant enhancements in AI analysis, source attribution, vendor intelligence, and professional content filtering.
+
+This enhanced version transforms the original data collection system into a comprehensive business intelligence platform with verified source attribution, dynamic vendor detection, and advanced GPT-4 analysis.
+
+## 🆕 Key Enhancements vs Original ULTRATHINK
+
+### **Intelligence & Analysis**
+- ✅ **Working Source Attribution**: Every insight links to actual sources with clickable footnotes
+- ✅ **GPT-4 Analysis with Quotes**: Shows exact text that led to each conclusion
+- ✅ **Dynamic Vendor Detection**: Discovers 150+ vendors automatically vs 32 fixed vendors
+- ✅ **Smart Search Generation**: Creates 50+ targeted queries vs 5 basic searches
+
+### **Content Quality** 
+- ✅ **Professional Language Filtering**: Automatically cleans inappropriate language
+- ✅ **Advanced Content Curation**: Smart filtering beyond basic engagement metrics
+- ✅ **Vendor Highlighting**: Bold highlighting of vendor mentions throughout reports
+- ✅ **24-Hour Fresh Data**: Enhanced time filtering with smart fallbacks
+
+### **Report Features**
+- ✅ **Interactive Reports**: Expandable/collapsible sections with smooth navigation
+- ✅ **Comprehensive Vendor Documentation**: Complete analysis methodology transparency
+- ✅ **Enhanced Email Formatting**: Professional presentation for executive distribution
+- ✅ **Source Verification**: Every claim backed by verifiable sources
+
+### **System Reliability**
+- ✅ **Single Integrated System**: All-in-one solution vs multiple module management
+- ✅ **Minimal Dependencies**: Python 3.13 compatible with stability focus
+- ✅ **Smart Fallback Mechanisms**: Intelligent handling of data availability
+- ✅ **Professional Error Handling**: Business-grade reliability
 
 ## 🚀 Features
 
@@ -28,39 +56,46 @@ ULTRATHINK is a production-grade automated pricing intelligence system that leve
 
 ## 🛠️ Installation
 
-### Local Installation
+### Quick Start (Enhanced Version)
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-org/ultrathink.git
-cd ultrathink
+git clone https://github.com/dollarvora/ultrathink-enhanced.git
+cd ultrathink-enhanced
 ```
 
-2. Create virtual environment:
+2. Configure environment variables:
+```bash
+# Create .env file with your API keys (see configuration section below)
+```
+
+3. Run the system:
+```bash
+chmod +x run_system.sh
+./run_system.sh
+```
+
+The `run_system.sh` script automatically:
+- Creates virtual environment
+- Installs minimal dependencies
+- Runs the enhanced system
+
+### Traditional Installation
+
+1. Create virtual environment:
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-3. Install dependencies:
+2. Install dependencies:
 ```bash
-pip install -r requirements.txt
+pip install -r requirements_minimal.txt
 ```
 
-4. Install Playwright browsers:
+3. Run the main system:
 ```bash
-python manage.py install_playwright
-```
-
-5. Configure environment:
-```bash
-cp .env.example .env
-# Edit .env with your API keys
-```
-
-6. Validate setup:
-```bash
-python manage.py validate
+python create_real_system.py
 ```
 
 ### Docker Installation
