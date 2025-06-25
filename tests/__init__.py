@@ -1,3 +1,0 @@
-"""
-ULTRATHINK Test Suite
-"""

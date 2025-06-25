@@ -37,8 +37,8 @@ class RedditFetcher(BaseFetcher):
         if submission.selftext in ['[removed]', '[deleted]']:
             return False
         
-        # Skip low engagement posts
-        if submission.score < 10 and submission.num_comments < 5:
+        # Skip low engagement posts (relaxed filter - OR instead of AND)
+        if submission.score < 3 and submission.num_comments < 3:
             return False
             
         # Skip very old posts
@@ -79,28 +79,50 @@ class RedditFetcher(BaseFetcher):
         reddit = self._get_reddit_client()
         all_posts = []
 
-        # Calculate time threshold (last 7 days)
-        time_threshold = datetime.now() - timedelta(days=7)
+        # Smart fallback: Start with 24 hours, extend to 7 days if needed
+        time_threshold_24h = datetime.now() - timedelta(hours=24)
+        time_threshold_7d = datetime.now() - timedelta(days=7)
 
         for subreddit_name in self.source_config['subreddits']:
             try:
                 self.logger.info(f"Fetching from r/{subreddit_name} via API")
                 subreddit = reddit.subreddit(subreddit_name)
 
-                # Fetch hot posts
+                # First try 24-hour posts
+                posts_24h = []
                 for submission in subreddit.hot(limit=self.source_config['post_limit']):
                     if self._is_quality_post(submission):
                         post_data = self._extract_post_data(submission)
-                        if post_data['created_at'] > time_threshold:
-                            all_posts.append(post_data)
+                        if post_data['created_at'] > time_threshold_24h:
+                            posts_24h.append(post_data)
 
-                # Fetch new posts
                 for submission in subreddit.new(limit=self.source_config['post_limit']):
                     if self._is_quality_post(submission):
                         post_data = self._extract_post_data(submission)
-                        if post_data['created_at'] > time_threshold and \
-                           post_data['id'] not in [p['id'] for p in all_posts]:
-                            all_posts.append(post_data)
+                        if post_data['created_at'] > time_threshold_24h and \
+                           post_data['id'] not in [p['id'] for p in posts_24h]:
+                            posts_24h.append(post_data)
+                
+                # Smart fallback: If insufficient 24h data, extend to 7 days
+                if len(posts_24h) < 5:  # If less than 5 posts in 24h
+                    self.logger.info(f"⚠️ Only {len(posts_24h)} posts in 24h for r/{subreddit_name}, extending to 7 days...")
+                    
+                    for submission in subreddit.hot(limit=self.source_config['post_limit'] * 2):
+                        if self._is_quality_post(submission):
+                            post_data = self._extract_post_data(submission)
+                            if post_data['created_at'] > time_threshold_7d:
+                                all_posts.append(post_data)
+
+                    for submission in subreddit.new(limit=self.source_config['post_limit'] * 2):
+                        if self._is_quality_post(submission):
+                            post_data = self._extract_post_data(submission)
+                            if post_data['created_at'] > time_threshold_7d and \
+                               post_data['id'] not in [p['id'] for p in all_posts]:
+                                all_posts.append(post_data)
+                else:
+                    # Use 24h data if sufficient
+                    all_posts.extend(posts_24h)
+                    self.logger.info(f"✅ Sufficient 24h data for r/{subreddit_name}: {len(posts_24h)} posts")
 
             except Exception as e:
                 self.logger.error(f"Error fetching from r/{subreddit_name}: {e}")
@@ -123,7 +145,7 @@ class RedditFetcher(BaseFetcher):
     def _fetch_via_snscrape(self) -> List[Dict[str, Any]]:
         """Fetch posts using snscrape for broader coverage"""
         all_posts = []
-        time_threshold = datetime.now() - timedelta(days=7)
+        time_threshold = datetime.now() - timedelta(days=7)  # Use 7-day window for snscrape
         
         for subreddit_name in self.source_config['subreddits']:
             try:
@@ -187,8 +209,8 @@ class RedditFetcher(BaseFetcher):
         if post_data.get('content') in ['[removed]', '[deleted]', None, '']:
             return False
         
-        # Skip low engagement posts
-        if post_data.get('score', 0) < 10 and post_data.get('num_comments', 0) < 5:
+        # Skip low engagement posts (relaxed filter - OR instead of AND)  
+        if post_data.get('score', 0) < 3 and post_data.get('num_comments', 0) < 3:
             return False
         
         # Skip very old posts

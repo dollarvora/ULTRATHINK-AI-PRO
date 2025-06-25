@@ -56,7 +56,7 @@ CONFIG = {
     "sources": {
         "reddit": {
             "enabled": True,
-            "subreddits": ["sysadmin", "msp", "cybersecurity", "ITManagers", "procurement", "enterprise", "cloudcomputing", "aws", "azure"],
+            "subreddits": ["sysadmin", "msp", "cybersecurity", "vmware", "AZURE", "aws", "networking", "devops", "homelab", "k8s", "kubernetes", "selfhosted", "DataHoarder", "storage", "linuxadmin", "PowerShell", "ITManagers", "BusinessIntelligence", "enterprise", "ITCareerQuestions"],
             "post_limit": 50,
             "comment_limit": 20
         },
