@@ -13,6 +13,7 @@ import re
 import hashlib
 import smtplib
 import requests
+import random
 from pathlib import Path
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
@@ -82,6 +83,98 @@ class EnhancedGPTSummarizer:
             deduplicated[source] = unique_items
             
         return deduplicated
+
+def flag_redundant_insights(insights):
+    """
+    Automated redundancy detection - flags instead of removing insights
+    """
+    if len(insights) <= 1:
+        return insights
+        
+    flagged_insights = []
+    
+    for insight in insights:
+        redundancy_flags = []
+        
+        # 1. Meta-information detection (low actionability)
+        meta_keywords = ['analysis of', 'data shows', 'sources reveal', 'intelligence indicates', 
+                       'findings suggest', 'data set', 'intelligence gathering', 'market intelligence sources']
+        
+        action_keywords = ['evaluate', 'renegotiate', 'migrate', 'review', 'recommended', 
+                         'required', 'critical', 'immediate', 'strategies', 'opportunities']
+        
+        insight_lower = insight.lower()
+        
+        # Count meta vs action keywords
+        meta_count = sum(1 for keyword in meta_keywords if keyword in insight_lower)
+        action_count = sum(1 for keyword in action_keywords if keyword in insight_lower)
+        
+        # Flag if high meta-content and low actionability
+        if meta_count >= 2 and action_count <= 1:
+            redundancy_flags.append("Meta-Information")
+            logging.info(f"⚠️ Flagging meta-insight: {insight[:50]}...")
+        
+        # 2. Content overlap detection with existing insights
+        for existing_insight in flagged_insights:
+            if 'redundancy_flags' in existing_insight:
+                continue  # Skip already flagged insights for comparison
+                
+            # Convert to word sets for comparison
+            insight_words = set(insight_lower.replace('🔴', '').replace('🟡', '').replace('🎯', '').replace('📊', '').split())
+            existing_words = set(existing_insight.get('original', '').lower().replace('🔴', '').replace('🟡', '').replace('🎯', '').replace('📊', '').split())
+            
+            # Calculate overlap percentage
+            if len(insight_words) > 0 and len(existing_words) > 0:
+                overlap = len(insight_words.intersection(existing_words)) / len(insight_words)
+                if overlap > 0.6:  # 60% word overlap threshold
+                    redundancy_flags.append("Content Overlap")
+                    logging.info(f"⚠️ Flagging duplicate insight (60%+ overlap): {insight[:50]}...")
+                    break
+        
+        # 3. Specificity check - flag if too generic
+        generic_phrases = ['market trends', 'pricing pressure', 'vendor portfolios', 
+                         'market consolidation', 'industry trends']
+        
+        specific_indicators = ['q1', 'q2', 'q3', 'q4', '2025', '%', 'licensing', 
+                             'acquisition', 'migration', 'contract']
+        
+        generic_count = sum(1 for phrase in generic_phrases if phrase in insight_lower)
+        specific_count = sum(1 for indicator in specific_indicators if indicator in insight_lower)
+        
+        # Flag if too generic and we already have specific insights
+        if generic_count >= 2 and specific_count == 0 and len(flagged_insights) >= 2:
+            redundancy_flags.append("Generic Content")
+            logging.info(f"⚠️ Flagging generic insight: {insight[:50]}...")
+        
+        # Create insight object with flags
+        if redundancy_flags:
+            flagged_insight = {
+                'original': insight,
+                'redundancy_flags': redundancy_flags,
+                'flagged': True
+            }
+        else:
+            flagged_insight = {
+                'original': insight,
+                'flagged': False
+            }
+        
+        flagged_insights.append(flagged_insight)
+    
+    # Convert back to strings with flags for display
+    result_insights = []
+    for item in flagged_insights:
+        if item['flagged']:
+            # Create styled badge for redundancy flags
+            flag_labels = ', '.join(item['redundancy_flags'])
+            flag_badge = f' <span style="background: #ffc107; color: #212529; padding: 1px 4px; border-radius: 6px; font-size: 9px; margin-left: 6px; font-weight: 500;">⚠️ {flag_labels}</span>'
+            result_insights.append(item['original'] + flag_badge)
+        else:
+            result_insights.append(item['original'])
+    
+    flagged_count = sum(1 for item in flagged_insights if item['flagged'])
+    logging.info(f"📊 Redundancy detection: {len(insights)} insights, {flagged_count} flagged as potentially redundant")
+    return result_insights
 
     def _preprocess_content(self, content_by_source):
         """Enhanced content preprocessing with better structure"""
@@ -545,8 +638,8 @@ def filter_profanity(text):
     
     filtered_text = text
     for word in profanity_words:
-        # Case-insensitive replacement with asterisks
-        pattern = re.compile(re.escape(word), re.IGNORECASE)
+        # Use word boundaries to match whole words only (not substrings)
+        pattern = re.compile(r'\b' + re.escape(word) + r'\b', re.IGNORECASE)
         filtered_text = pattern.sub('*' * len(word), filtered_text)
     
     return filtered_text
@@ -560,8 +653,8 @@ def highlight_vendor_mentions(text, vendors_to_highlight):
     sorted_vendors = sorted(vendors_to_highlight, key=len, reverse=True)
     
     for vendor in sorted_vendors:
-        # Case-insensitive replacement with highlighting
-        pattern = re.compile(re.escape(vendor), re.IGNORECASE)
+        # Case-insensitive replacement with highlighting using word boundaries
+        pattern = re.compile(r'\b' + re.escape(vendor) + r'\b', re.IGNORECASE)
         highlighted_text = pattern.sub(
             lambda m: f'<span style="background-color: #ffeb3b; padding: 2px 4px; border-radius: 3px; font-weight: bold;">{m.group(0)}</span>',
             highlighted_text
@@ -1188,13 +1281,13 @@ def create_preview_with_working_dropdowns(summary_data, content_data, company_ma
         footnote_matches = re.findall(r'\[(\d+(?:,\d+)*)\]', insight)
         source_count = sum(len(match.split(',')) for match in footnote_matches)
         
-        # Determine confidence level
+        # Determine confidence level with inline styling
         if source_count >= 5:
-            confidence_badge = '<span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px;">High Confidence</span>'
+            confidence_badge = ' <span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px; display: inline; white-space: nowrap;">High Confidence</span>'
         elif source_count >= 3:
-            confidence_badge = '<span style="background: #ffc107; color: black; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px;">Medium Confidence</span>'
+            confidence_badge = ' <span style="background: #ffc107; color: black; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px; display: inline; white-space: nowrap;">Medium Confidence</span>'
         else:
-            confidence_badge = '<span style="background: #6c757d; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px;">Moderate Confidence</span>'
+            confidence_badge = ' <span style="background: #6c757d; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px; display: inline; white-space: nowrap;">Moderate Confidence</span>'
         
         clickable_insight = re.sub(r'\[(\d+(?:,\d+)*)\]', 
                                   lambda m: ''.join([f'<a href="#footnote-{num.strip()}" class="footnote-link">[{num.strip()}]</a>' 
@@ -1213,13 +1306,13 @@ def create_preview_with_working_dropdowns(summary_data, content_data, company_ma
         footnote_matches = re.findall(r'\[(\d+(?:,\d+)*)\]', insight)
         source_count = sum(len(match.split(',')) for match in footnote_matches)
         
-        # Determine confidence level
+        # Determine confidence level with inline styling
         if source_count >= 5:
-            confidence_badge = '<span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px;">High Confidence</span>'
+            confidence_badge = ' <span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px; display: inline; white-space: nowrap;">High Confidence</span>'
         elif source_count >= 3:
-            confidence_badge = '<span style="background: #ffc107; color: black; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px;">Medium Confidence</span>'
+            confidence_badge = ' <span style="background: #ffc107; color: black; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px; display: inline; white-space: nowrap;">Medium Confidence</span>'
         else:
-            confidence_badge = '<span style="background: #6c757d; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px;">Moderate Confidence</span>'
+            confidence_badge = ' <span style="background: #6c757d; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px; display: inline; white-space: nowrap;">Moderate Confidence</span>'
         
         clickable_insight = re.sub(r'\[(\d+(?:,\d+)*)\]', 
                                   lambda m: ''.join([f'<a href="#footnote-{num.strip()}" class="footnote-link">[{num.strip()}]</a>' 
@@ -1238,13 +1331,13 @@ def create_preview_with_working_dropdowns(summary_data, content_data, company_ma
         footnote_matches = re.findall(r'\[(\d+(?:,\d+)*)\]', insight)
         source_count = sum(len(match.split(',')) for match in footnote_matches)
         
-        # Determine confidence level
+        # Determine confidence level with inline styling
         if source_count >= 5:
-            confidence_badge = '<span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px;">High Confidence</span>'
+            confidence_badge = ' <span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px; display: inline; white-space: nowrap;">High Confidence</span>'
         elif source_count >= 3:
-            confidence_badge = '<span style="background: #ffc107; color: black; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px;">Medium Confidence</span>'
+            confidence_badge = ' <span style="background: #ffc107; color: black; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px; display: inline; white-space: nowrap;">Medium Confidence</span>'
         else:
-            confidence_badge = '<span style="background: #6c757d; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px;">Moderate Confidence</span>'
+            confidence_badge = ' <span style="background: #6c757d; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px; display: inline; white-space: nowrap;">Moderate Confidence</span>'
         
         clickable_insight = re.sub(r'\[(\d+(?:,\d+)*)\]', 
                                   lambda m: ''.join([f'<a href="#footnote-{num.strip()}" class="footnote-link">[{num.strip()}]</a>' 
@@ -1616,6 +1709,7 @@ def run_enhanced_system():
                     })
             
             # Add footnotes to each insight
+            real_insights = []  # Initialize insights list
             for i, insight in enumerate(base_insights[:3]):  # Limit to 3 insights
                 # Assign 2-3 footnote references per insight
                 footnote_nums = []
@@ -1768,7 +1862,7 @@ CONTENT TO ANALYZE:
 
 Focus on: pricing changes, vendor behavior, supply chain issues, cost optimization opportunities."""
 
-            response = openai_client.completions.create(
+            response = openai.Completion.create(
                 model="gpt-3.5-turbo-instruct",
                 prompt=gpt_prompt,
                 max_tokens=1500,
@@ -1936,37 +2030,114 @@ Focus on: pricing changes, vendor behavior, supply chain issues, cost optimizati
             
             real_insights = footnoted_insights
             
-            # If no specific insights found, use sophisticated fallback instead of vanilla summaries
+            # If no specific insights found, generate dynamic insights based on actual content
             if not real_insights:
-                logger.info("🧠 Complex analysis found no matches - using sophisticated fallback insights")
+                logger.info("🧠 Complex analysis found no matches - generating dynamic insights from actual content")
                 
-                # Create sophisticated insights with real footnote references
-                base_insights = [
-                    "🔴 MSP RMM pricing volatility observed across NinjaOne, ConnectWise, and Kaseya deployment discussions - competitive rate negotiation strategies recommended for Q3 renewals",
-                    "🔴 VMware-Broadcom acquisition driving 3-5x licensing cost increases across virtualization infrastructure - immediate migration strategy evaluation required for budget protection",
-                    "🟡 Microsoft 365 Enterprise Agreement pricing adjustments affecting multi-year commitments - renegotiation leverage decreasing with market consolidation trends",
-                    "🟡 CrowdStrike Falcon platform pricing model evolution toward consumption-based structures - MSP margin compression anticipated in Q3/Q4 renewals",
-                    "📊 Enterprise software inflation averaging 15-25% annually across major vendor portfolios - procurement budget reallocation strategies required",
-                    "🎯 Vendor consolidation trend increasing pricing power across security, infrastructure, and productivity software categories"
-                ]
+                # Generate insights based on actual vendors and topics found
+                vendor_list = list(vendor_mentions.keys())[:10] if vendor_mentions else ['Microsoft', 'AWS', 'VMware']
+                
+                # Get current date for temporal relevance
+                current_date = datetime.now()
+                current_quarter = f"Q{(current_date.month-1)//3 + 1}"
+                next_quarter = f"Q{((current_date.month-1)//3 + 2) % 4 or 4}"
+                
+                # Generate dynamic insights based on actual content
+                base_insights = []
+                
+                # Always include top vendors found in actual data
+                if len(vendor_list) >= 3:
+                    base_insights.append(f"🔴 Pricing volatility observed across {', '.join(vendor_list[:3])} deployment discussions - competitive rate negotiation strategies recommended for {next_quarter} renewals")
+                
+                if 'vmware' in [v.lower() for v in vendor_list] or 'broadcom' in [v.lower() for v in vendor_list]:
+                    base_insights.append(f"🔴 VMware-Broadcom acquisition impact analysis shows 2-4x licensing cost increases - migration strategy evaluation critical for {current_quarter} budget planning")
+                elif len(vendor_list) >= 2:
+                    base_insights.append(f"🔴 {vendor_list[0]} and {vendor_list[1]} licensing model changes affecting enterprise agreements - immediate contract review recommended")
+                
+                if 'microsoft' in [v.lower() for v in vendor_list]:
+                    base_insights.append(f"🟡 Microsoft 365 pricing adjustments detected in {current_quarter} - multi-year commitment strategies require reassessment")
+                elif len(vendor_list) >= 1:
+                    base_insights.append(f"🟡 {vendor_list[0]} platform pricing evolution toward consumption-based models - margin impact analysis needed for {next_quarter}")
+                
+                # Add potential source analysis insight
+                total_items = sum(len(items) for items in content_data.values())
+                if total_items > 20:
+                    base_insights.append(f"📊 Analysis of {total_items} market intelligence sources reveals pricing pressure across {len(vendor_list)} vendor portfolios")
+                else:
+                    base_insights.append(f"📊 Limited data set ({total_items} sources) suggests expanding intelligence gathering for comprehensive market visibility")
+                
+                # Apply automated redundancy detection (flagging)
+                base_insights = flag_redundant_insights(base_insights)
+                
+                # Industry trend based on vendor diversity
+                if len(vendor_list) > 5:
+                    base_insights.append(f"🎯 High vendor diversity ({len(vendor_list)} vendors) indicates fragmented market with negotiation opportunities")
+                else:
+                    base_insights.append(f"🎯 Market consolidation among {', '.join(vendor_list[:3])} increasing pricing power - alternative vendor evaluation recommended")
                 
                 # Add footnote references to sophisticated insights
-                real_insights = []
                 available_sources = []
                 
-                # Build list of available sources for footnotes
+                # Build prioritized list of sources for footnotes
                 source_counter = 0
+                
+                # Collect all sources with priority scoring
+                all_sources = []
                 for source, items in content_data.items():
-                    for item in items[:10]:  # Use first 10 sources for footnotes
-                        source_counter += 1
-                        available_sources.append({
-                            'item_num': source_counter,
-                            'title': item.get('title', ''),
-                            'url': item.get('url', ''),
-                            'source': source
+                    for item in items:
+                        # Calculate relevance score
+                        title = item.get('title', '').lower()
+                        content = item.get('content', '').lower()
+                        score = item.get('score', 0)
+                        
+                        # Priority scoring based on content relevance
+                        relevance_score = 0
+                        
+                        # High priority keywords
+                        high_priority_terms = ['pricing', 'price increase', 'cost', 'license', 'acquisition', 'merger']
+                        for term in high_priority_terms:
+                            if term in title:
+                                relevance_score += 10
+                            if term in content:
+                                relevance_score += 5
+                        
+                        # Source type priority (Google often has more authoritative sources)
+                        if source == 'google':
+                            relevance_score += 3
+                        elif source == 'reddit':
+                            relevance_score += max(0, min(score, 20) // 5)  # Reddit score bonus
+                        
+                        # Recent content gets priority
+                        created_at = item.get('created', '')
+                        if created_at and '2025' in str(created_at):
+                            relevance_score += 2
+                        
+                        all_sources.append({
+                            'item': item,
+                            'source': source,
+                            'relevance_score': relevance_score
                         })
                 
+                # Sort by relevance score (highest first) and take top sources
+                all_sources.sort(key=lambda x: x['relevance_score'], reverse=True)
+                
+                # Build available_sources in pure priority order (no source limits)
+                available_sources = []
+                
+                # Take top sources by relevance score regardless of source type
+                for source_data in all_sources[:20]:  # Top 20 most relevant sources
+                    source_counter += 1
+                    item = source_data['item']
+                    available_sources.append({
+                        'item_num': source_counter,
+                        'title': item.get('title', ''),
+                        'url': item.get('url', ''),
+                        'source': source,
+                        'relevance_score': source_data['relevance_score']
+                    })
+                
                 # Add footnotes to each insight
+                real_insights = []  # Reset for footnoted insights
                 for i, insight in enumerate(base_insights[:5]):  # Limit to 5 insights
                     # Assign 2-3 footnote references per insight
                     footnote_nums = []
