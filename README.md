@@ -2,6 +2,8 @@
 ## Enterprise Pricing Intelligence Platform
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Docker](https://img.shields.io/badge/docker-enabled-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Portfolio](https://img.shields.io/badge/type-portfolio-brightgreen.svg)](https://github.com/dollarvora)
 [![License: Proprietary](https://img.shields.io/badge/license-proprietary-red.svg)](./LICENSE)
 
 **ULTRATHINK Enhanced** is an enhanced version of [ULTRATHINK](https://github.com/dollarvora/ultrathink) - an AI-powered enterprise pricing intelligence platform that delivers automated market analysis for IT procurement and distribution professionals.
