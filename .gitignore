@@ -1,3 +1,14 @@
+# ULTRATHINK Enhanced - Production .gitignore
+
+# Environment and credentials
+.env
+.env.*
+*.key
+*.pem
+*.p12
+config/credentials.json
+config/secrets.json
+
 # Python
 __pycache__/
 *.py[cod]
@@ -23,50 +34,45 @@ share/python-wheels/
 *.egg
 PIPFILE.lock
 
-# Virtual Environments
+# Virtual environments
 venv/
 ENV/
 env/
 .venv/
 ultrathink-env/
 
-# IDE
+# IDE and editors
 .vscode/
 .idea/
+*.sublime-project
+*.sublime-workspace
 *.swp
 *.swo
 *~
+.atom/
+
+# System files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# Environment
-.env
-.env.local
-.env.*.local
-
-# Logs
-*.log
-logs/*
-!logs/.gitkeep
-
-# Output
+# Application output and data
 output/*
 !output/.gitkeep
-
-# Cache
+logs/*
+!logs/.gitkeep
 cache/*
 !cache/.gitkeep
-
-# Previews
 previews/*
 !previews/.gitkeep
-
-# Backups
 backups/
-
-# Exports
 exports/
 
-# Test
+# Test and development artifacts
 .pytest_cache/
 .coverage
 htmlcov/
@@ -75,15 +81,11 @@ htmlcov/
 *.cover
 *.py,cover
 .coverage.*
+test_*/
+*_test.py
+*_testing.py
 
-# Documentation
-docs/_build/
-
-# Playwright
-playwright-report/
-test-results/
-
-# Demo & Development Files
+# Development files (exclude from production)
 magic_setup/
 interactive_demo.html
 demo_web.py
@@ -91,34 +93,39 @@ create_demo_package.py
 extract_files.py
 ultrathink-part*.json
 emailer.zip
+drafts/
 
-# Browser Cache (Playwright)
+# Browser automation cache
 playwright-cache/
 .playwright/
+playwright-report/
+test-results/
 
-# Package Files
+# Package and archive files
 *.zip
 *.tar.gz
 *.tar
 
-# API Keys & Credentials
-config/credentials.json
-config/secrets.json
-*.key
-*.pem
-*.p12
-
-# OS Generated Files
-Thumbs.db
-ehthumbs.db
-.Spotlight-V100
-.Trashes
-
-# Email Templates Output
+# Email output
 *.eml
+draft_emails/
 
-# Misc
+# Temporary and backup files
 *.bak
 *.tmp
 *.temp
 .python-version
+
+# Documentation builds
+docs/_build/
+
+# Local configuration overrides
+config_local.py
+local_settings.py
+
+# API response caches
+*_cache.json
+*_response.json
+
+# Jupyter notebooks
+.ipynb_checkpoints

@@ -5,19 +5,17 @@ echo "🚀 Starting ULTRATHINK Enhanced System..."
 # Navigate to the correct directory
 cd /Users/Dollar/Documents/ultrathink-enhanced
 
-# Check if virtual environment exists, if not create it
-if [ ! -d "venv" ]; then
-    echo "📦 Creating virtual environment..."
-    python3 -m venv venv
+# Use the working virtual environment from ultrathink
+echo "🔧 Using working virtual environment from ultrathink..."
+WORKING_VENV="/Users/Dollar/Documents/ultrathink/venv"
+
+if [ ! -d "$WORKING_VENV" ]; then
+    echo "❌ Working venv not found at $WORKING_VENV"
+    exit 1
 fi
 
-# Activate virtual environment
-echo "🔧 Activating virtual environment..."
-source venv/bin/activate
-
-# Install requirements if they haven't been installed
-echo "📥 Installing/updating requirements..."
-pip install -r requirements_minimal.txt
+source "$WORKING_VENV/bin/activate"
+echo "✅ Using proven working environment with correct OpenAI version"
 
 # Run the system
 echo "🎯 Running ULTRATHINK Enhanced System..."

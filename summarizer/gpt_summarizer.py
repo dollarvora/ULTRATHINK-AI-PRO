@@ -574,6 +574,8 @@ Now analyze this content and generate role-specific intelligence following the e
     def generate_summary(self, content_by_source: Dict[str, Any], config: Dict[str, Any]) -> Dict[str, Any]:
         """Enhanced summary generation with company alias intelligence and role-specific targeting"""
         self.config = config
+        
+        # Initialize OpenAI with legacy format
         openai.api_key = os.getenv("OPENAI_API_KEY")
 
         # Enhanced content preprocessing with company detection
