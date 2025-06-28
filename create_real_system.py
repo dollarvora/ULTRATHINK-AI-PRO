@@ -2045,19 +2045,12 @@ Focus on: pricing changes, vendor behavior, supply chain issues, cost optimizati
                 # Generate dynamic insights based on actual content
                 base_insights = []
                 
-                # Always include top vendors found in actual data
-                if len(vendor_list) >= 3:
-                    base_insights.append(f"🔴 Pricing volatility observed across {', '.join(vendor_list[:3])} deployment discussions - competitive rate negotiation strategies recommended for {next_quarter} renewals")
-                
-                if 'vmware' in [v.lower() for v in vendor_list] or 'broadcom' in [v.lower() for v in vendor_list]:
-                    base_insights.append(f"🔴 VMware-Broadcom acquisition impact analysis shows 2-4x licensing cost increases - migration strategy evaluation critical for {current_quarter} budget planning")
-                elif len(vendor_list) >= 2:
-                    base_insights.append(f"🔴 {vendor_list[0]} and {vendor_list[1]} licensing model changes affecting enterprise agreements - immediate contract review recommended")
-                
-                if 'microsoft' in [v.lower() for v in vendor_list]:
-                    base_insights.append(f"🟡 Microsoft 365 pricing adjustments detected in {current_quarter} - multi-year commitment strategies require reassessment")
-                elif len(vendor_list) >= 1:
-                    base_insights.append(f"🟡 {vendor_list[0]} platform pricing evolution toward consumption-based models - margin impact analysis needed for {next_quarter}")
+                # ULTRATHINK-AI-PRO v3.0.0: ZERO FALLBACK POLICY
+                # No hardcoded insights - authentic data only
+                logger.warning("❌ GPT ANALYSIS FAILED - NO TEMPLATE INSIGHTS GENERATED")
+                logger.warning("📊 ULTRATHINK-AI-PRO: 100% AUTHENTIC DATA POLICY - NO FALLBACK CONTENT")
+                base_insights.append("⚠️ GPT analysis failed - no insights available from today's data")
+                base_insights.append("🔄 Retry with API credentials or contact support")
                 
                 # Add potential source analysis insight
                 total_items = sum(len(items) for items in content_data.values())
