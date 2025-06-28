@@ -2,8 +2,8 @@ import os
 
 CONFIG = {
     "system": {
-        "name": "ULTRATHINK Pricing Intelligence System",
-        "version": "1.0.1",
+        "name": "ULTRATHINK-AI-PRO Pricing Intelligence System",
+        "version": "2.0.0",
         "timezone": "UTC",
         "run_hour": 8,
         "cache_ttl_hours": 24
@@ -79,8 +79,8 @@ CONFIG = {
         }
     },
     "summarization": {
-        "model": "gpt-4-turbo-preview",
-        "max_tokens": 2000,
+        "model": "gpt-4o-mini",
+        "max_tokens": 500,
         "temperature": 0.3
     },
     "email": {
