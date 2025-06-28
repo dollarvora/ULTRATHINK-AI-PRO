@@ -67,10 +67,10 @@ While the original [ultrathink-enhanced](https://github.com/dollarvora/ultrathin
 - Microsoft updates (Medium Confidence)
 ```
 
-**ULTRATHINK-AI-PRO**: Professional HTML badges
-```html
-- VMware pricing changes <span style="background: #dc3545; color: white; padding: 3px 8px; border-radius: 12px;">HIGH CONFIDENCE</span>
-- Microsoft updates <span style="background: #ffc107; color: #212529; padding: 3px 8px; border-radius: 12px;">MEDIUM CONFIDENCE</span>
+**ULTRATHINK-AI-PRO**: Professional visual badges
+```
+- VMware pricing changes ![HIGH CONFIDENCE](https://img.shields.io/badge/HIGH%20CONFIDENCE-red?style=flat-square)
+- Microsoft updates ![MEDIUM CONFIDENCE](https://img.shields.io/badge/MEDIUM%20CONFIDENCE-yellow?style=flat-square)
 ```
 
 ## Technical Capabilities
@@ -258,29 +258,24 @@ The system analyzes from three perspectives:
 
 ### Executive Summary Format
 
-```html
-<div class="executive-summary">
-Based on our analysis, Broadcom is forcing VMware customers to spend 
-<strong>$16k for CPU core downgrades</strong> 
-<span style="background: #dc3545; color: white; padding: 3px 8px; 
-border-radius: 12px; font-size: 11px; font-weight: bold;">HIGH CONFIDENCE</span>, 
+```markdown
+Based on our analysis, Broadcom is forcing VMware customers to spend **$16k for CPU core downgrades** 
+![HIGH CONFIDENCE](https://img.shields.io/badge/HIGH%20CONFIDENCE-red?style=flat-square), 
 while also auditing perpetual licenses driving migration to Proxmox 
-<span style="background: #ffc107; color: #212529; padding: 3px 8px; 
-border-radius: 12px; font-size: 11px; font-weight: bold;">MEDIUM CONFIDENCE</span>.
-</div>
+![MEDIUM CONFIDENCE](https://img.shields.io/badge/MEDIUM%20CONFIDENCE-yellow?style=flat-square).
 ```
 
 ### Strategic Intelligence Structure
 
 **Priority Alpha (High Impact)**
-- 🔴 Broadcom forcing VMware customers to spend $16k for CPU downgrades **[1]** <span style="background: #dc3545; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 8px;">HIGH CONFIDENCE</span>
+- 🔴 Broadcom forcing VMware customers to spend $16k for CPU downgrades **[1]** ![HIGH CONFIDENCE](https://img.shields.io/badge/HIGH%20CONFIDENCE-red?style=flat-square)
 
 **Priority Beta (Medium Impact)**
-- 🟡 VMware perpetual licenses being audited, driving migration **[3]** <span style="background: #ffc107; color: #212529; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 8px;">MEDIUM CONFIDENCE</span>
-- 🟡 Microsoft 365 compliance requiring additional costs **[9]** <span style="background: #ffc107; color: #212529; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 8px;">MEDIUM CONFIDENCE</span>
+- 🟡 VMware perpetual licenses being audited, driving migration **[3]** ![MEDIUM CONFIDENCE](https://img.shields.io/badge/MEDIUM%20CONFIDENCE-yellow?style=flat-square)
+- 🟡 Microsoft 365 compliance requiring additional costs **[9]** ![MEDIUM CONFIDENCE](https://img.shields.io/badge/MEDIUM%20CONFIDENCE-yellow?style=flat-square)
 
 **Priority Gamma (Monitoring)**
-- 🟢 ServiceNow pricing changes under evaluation **[15]** <span style="background: #28a745; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 8px;">LOW CONFIDENCE</span>
+- 🟢 ServiceNow pricing changes under evaluation **[15]** ![LOW CONFIDENCE](https://img.shields.io/badge/LOW%20CONFIDENCE-green?style=flat-square)
 
 ## Performance Metrics
 
