@@ -238,7 +238,7 @@ def flag_redundant_insights(insights):
             return self._generate_fallback()
         
         # Build enhanced industry-specific prompt
-        prompt = f"""You are a senior intelligence analyst for Softchoice, a leading North American IT solutions provider. Analyze vendor pricing intelligence for our teams competing against CDW and Insight Global.
+        prompt = f"""You are a senior intelligence analyst for a leading technology distribution company. Analyze vendor pricing intelligence for teams competing in the enterprise IT market.
 
 🏢 INDUSTRY CONTEXT:
 - We're an IT distributor/reseller focused on software, hardware, security, cloud
@@ -2233,7 +2233,7 @@ Focus on: pricing changes, vendor behavior, supply chain issues, cost optimizati
         msg = MIMEMultipart()
         msg['Subject'] = f"ULTRATHINK Enhanced Analysis - {datetime.now().strftime('%Y-%m-%d')}"
         msg['From'] = f"ULTRATHINK Enhanced <{smtp_user}>"
-        msg['To'] = "John Smith <dollarvora@icloud.com>"
+        msg['To'] = "Test User <test@example.com>"
         
         # Email body with insights
         email_body = f"""
@@ -2293,10 +2293,10 @@ Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         with smtplib.SMTP(smtp_host, smtp_port) as server:
             server.starttls()
             server.login(smtp_user, smtp_password)
-            server.sendmail(smtp_user, "dollarvora@icloud.com", msg.as_string())
+            server.sendmail(smtp_user, "test@example.com", msg.as_string())
         
         logger.info("✅ Analysis report email sent successfully")
-        logger.info("📧 Delivered to: dollarvora@icloud.com")
+        logger.info("📧 Delivered to: test@example.com")
         logger.info(f"📎 Attachment: ULTRATHINK_Enhanced_{timestamp}.html")
         
         # Final summary

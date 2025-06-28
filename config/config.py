@@ -3,7 +3,7 @@ import os
 CONFIG = {
     "system": {
         "name": "ULTRATHINK-AI-PRO Pricing Intelligence System",
-        "version": "2.0.0",
+        "version": "3.0.0",
         "timezone": "UTC",
         "run_hour": 8,
         "cache_ttl_hours": 24

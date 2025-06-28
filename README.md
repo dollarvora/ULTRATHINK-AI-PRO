@@ -4,7 +4,7 @@
 
 An enhanced professional version of [ultrathink-enhanced](https://github.com/dollarvora/ultrathink-enhanced) with revolutionary confidence scoring, zero-fallback authenticity, and enterprise features.
 
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/dollarvora/ULTRATHINK-AI-PRO/releases)
+[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](https://github.com/dollarvora/ULTRATHINK-AI-PRO/releases)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![AI Powered](https://img.shields.io/badge/AI-GPT--4o--mini-green.svg)](https://platform.openai.com/)
@@ -46,7 +46,7 @@ While the original [ultrathink-enhanced](https://github.com/dollarvora/ultrathin
 
 ### Comparison Table
 
-| Feature | Original (v1.0.1) | ULTRATHINK-AI-PRO (v2.0.0) |
+| Feature | Original (v1.0.1) | ULTRATHINK-AI-PRO (v3.0.0) |
 |---------|-------------------|----------------------------|
 | **Confidence Display** | Text-based ("High/Medium/Low") | Colored HTML badges with visual impact |
 | **Vendor Coverage** | 43 companies, 129 aliases | 64+ companies, 300+ aliases |
@@ -152,7 +152,7 @@ OPENAI_API_KEY=sk-...your-key-here
 # Reddit API (https://www.reddit.com/prefs/apps)
 REDDIT_CLIENT_ID=your-client-id
 REDDIT_CLIENT_SECRET=your-secret
-REDDIT_USER_AGENT=ULTRATHINK-AI-PRO/2.0
+REDDIT_USER_AGENT=ULTRATHINK-AI-PRO/3.0
 
 # Google Custom Search
 GOOGLE_API_KEY=your-google-api-key
@@ -273,14 +273,14 @@ border-radius: 12px; font-size: 11px; font-weight: bold;">MEDIUM CONFIDENCE</spa
 ### Strategic Intelligence Structure
 
 **Priority Alpha (High Impact)**
-- 🔴 Broadcom forcing VMware customers to spend $16k for CPU downgrades **[1]** `HIGH CONFIDENCE`
+- 🔴 Broadcom forcing VMware customers to spend $16k for CPU downgrades **[1]** <span style="background: #dc3545; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 8px;">HIGH CONFIDENCE</span>
 
 **Priority Beta (Medium Impact)**
-- 🟡 VMware perpetual licenses being audited, driving migration **[3]** `MEDIUM CONFIDENCE`
-- 🟡 Microsoft 365 compliance requiring additional costs **[9]** `MEDIUM CONFIDENCE`
+- 🟡 VMware perpetual licenses being audited, driving migration **[3]** <span style="background: #ffc107; color: #212529; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 8px;">MEDIUM CONFIDENCE</span>
+- 🟡 Microsoft 365 compliance requiring additional costs **[9]** <span style="background: #ffc107; color: #212529; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 8px;">MEDIUM CONFIDENCE</span>
 
 **Priority Gamma (Monitoring)**
-- 🟢 ServiceNow pricing changes under evaluation **[15]** `LOW CONFIDENCE`
+- 🟢 ServiceNow pricing changes under evaluation **[15]** <span style="background: #28a745; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 8px;">LOW CONFIDENCE</span>
 
 ## Performance Metrics
 
@@ -302,7 +302,7 @@ border-radius: 12px; font-size: 11px; font-weight: bold;">MEDIUM CONFIDENCE</spa
 
 ## Version History
 
-### v2.0.0 (Current) - Major Enhancement
+### v3.0.0 (Current) - Major Enhancement
 - Colored confidence badges with visual impact
 - 64+ vendor coverage with 300+ aliases
 - Zero fallback policy for authentic data
@@ -345,8 +345,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - OpenAI for GPT-4o-mini API powering intelligent analysis
 - Reddit communities for valuable pricing discussions
 - Original ultrathink-enhanced for the foundational architecture
-- Enterprise users for feedback driving v2.0.0 enhancements
+- Enterprise users for feedback driving v3.0.0 enhancements
 
 ---
 
-**ULTRATHINK-AI-PRO v2.0.0** - Professional Pricing Intelligence for Enterprise IT
+**ULTRATHINK-AI-PRO v3.0.0** - Professional Pricing Intelligence for Enterprise IT

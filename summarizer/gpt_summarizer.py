@@ -286,7 +286,7 @@ class GPTSummarizer:
         # Build a comprehensive few-shot example based on actual roles
         few_shot_example = self._build_few_shot_example(roles)
         
-        prompt = f"""You are a senior intelligence analyst for Softchoice, a leading North American IT solutions provider. Analyze vendor pricing intelligence for our teams competing against CDW and Insight Global.
+        prompt = f"""You are a senior intelligence analyst for a leading technology distribution company. Analyze vendor pricing intelligence for teams competing in the enterprise IT market.
 
 🏢 INDUSTRY CONTEXT:
 - We're an IT distributor/reseller focused on software, hardware, security, cloud
@@ -683,7 +683,7 @@ Now analyze this content and generate role-specific intelligence following the e
         """Build enhanced system message with company and role context"""
         company_count = len(self.company_matcher.company_mappings)
         
-        return f"""You are a senior intelligence analyst for Softchoice (now part of WWT), a leading North American IT solutions provider specializing in enterprise technology distribution and services.
+        return f"""You are a senior intelligence analyst for a leading technology distribution company specializing in enterprise IT solutions and services.
 
 🎯 YOUR EXPERTISE:
 - Vendor pricing intelligence and competitive analysis
