@@ -1610,8 +1610,10 @@ def run_enhanced_system():
         # Change to ULTRATHINK-AI-PRO directory first
         import os
         os.chdir("/Users/Dollar/Documents/ULTRATHINK-AI-PRO")
+        logger.info(f"🔧 Working directory: {os.getcwd()}")
         
         load_dotenv("/Users/Dollar/Documents/ULTRATHINK-AI-PRO/.env")
+        logger.info("🔧 Loaded .env from ULTRATHINK-AI-PRO directory")
         
         # Step 1: Fetch pricing intelligence
         logger.info("\n🌐 STEP 1: Fetching Pricing Intelligence")
