@@ -1641,7 +1641,7 @@ def run_enhanced_system():
                 'summarization': {
                     'model': 'gpt-3.5-turbo-instruct',
                     'temperature': 0.2,
-                    'max_tokens': 300  # Reduced for token limit compliance
+                    'max_tokens': 800  # Increased to allow complete JSON response
                 },
                 'email': {
                     'employee_csv': 'config/employees.csv'
