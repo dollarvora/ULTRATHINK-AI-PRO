@@ -114,7 +114,7 @@ class GPTSummarizer:
                 continue
                 
             section_content = []
-            for item in items[:20]:  # Limit items per source
+            for item in items[:10]:  # Limit items per source for token efficiency
                 # Enhanced item processing with company detection
                 title = item.get('title', '')
                 content = item.get('content', item.get('text', ''))
@@ -173,10 +173,10 @@ class GPTSummarizer:
         
         combined_content = "\n\n".join(processed_sections)
         
-        # Truncate to fit within token limits - more conservative for old OpenAI versions
-        # Roughly 3000 chars = ~750 tokens (leaving room for system prompt)
-        if len(combined_content) > 3000:
-            combined_content = combined_content[:3000] + "\n\n[CONTENT TRUNCATED FOR TOKEN LIMIT]"
+        # Truncate to fit within token limits - very conservative for old OpenAI versions
+        # Roughly 2000 chars = ~500 tokens (leaving room for system prompt + completion)
+        if len(combined_content) > 2000:
+            combined_content = combined_content[:2000] + "\n\n[CONTENT TRUNCATED FOR TOKEN LIMIT]"
         
         if self.debug:
             logger.debug(f"🔍 Enhanced preprocessing: {total_items} items, {len([i for i in enhanced_items if i['detected_companies']])} with companies")

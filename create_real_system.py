@@ -1639,9 +1639,9 @@ def run_enhanced_system():
             # Create config for the summarizer
             config = {
                 'summarization': {
-                    'model': 'gpt-4',
+                    'model': 'gpt-3.5-turbo-instruct',
                     'temperature': 0.2,
-                    'max_tokens': 2000
+                    'max_tokens': 300  # Reduced for token limit compliance
                 },
                 'email': {
                     'employee_csv': 'config/employees.csv'
@@ -1651,9 +1651,13 @@ def run_enhanced_system():
             # Run the sophisticated analysis
             logger.info("🤖 Calling sophisticated GPT summarizer...")
             summary_data = summarizer.generate_summary(content_data, config)
-            logger.info(f"📊 Sophisticated analysis returned: {len(summary_data.get('role_summaries', {}))} role summaries")
             
-            logger.info(f"✅ Enhanced GPT Analysis completed with {len(summary_data.get('role_summaries', {}))} role summaries")
+            if summary_data and summary_data.get('role_summaries'):
+                logger.info(f"📊 Sophisticated analysis returned: {len(summary_data.get('role_summaries', {}))} role summaries")
+                logger.info(f"✅ Enhanced GPT Analysis completed with {len(summary_data.get('role_summaries', {}))} role summaries")
+            else:
+                logger.warning("📊 GPT analysis returned empty results")
+                raise Exception("GPT analysis failed - no data returned")
             
         except Exception as e:
             logger.error(f"❌ Enhanced summarizer failed: {e}")
