@@ -625,9 +625,9 @@ Now analyze this content and generate role-specific intelligence following the e
                 # Convert chat format to completion format
                 full_prompt = f"{system_message}\n\n{prompt}"
                 
-                # Use old completion API (not chat)
+                # Use old completion API with current model
                 response = openai.Completion.create(
-                    model="text-davinci-003",  # v0.8.0 doesn't support gpt-4
+                    model="gpt-3.5-turbo-instruct",  # Current completion model
                     prompt=full_prompt,
                     temperature=config.get("summarization", {}).get("temperature", 0.2),
                     max_tokens=config.get("summarization", {}).get("max_tokens", 500),
