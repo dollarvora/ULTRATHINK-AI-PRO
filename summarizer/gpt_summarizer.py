@@ -576,7 +576,7 @@ Now analyze this content and generate role-specific intelligence following the e
         self.config = config
         
         # Initialize OpenAI with legacy format
-        openai.api_key = os.getenv("OPENAI_API_KEY")
+        api_key = os.getenv("OPENAI_API_KEY")
 
         # Enhanced content preprocessing with company detection
         combined_content = self._preprocess_content(content_by_source)
@@ -598,14 +598,17 @@ Now analyze this content and generate role-specific intelligence following the e
             # Enhanced GPT call with industry-specific system message
             system_message = self._build_enhanced_system_message()
             
-            response = openai.ChatCompletion.create(
-                model=config.get("summarization", {}).get("model", "gpt-4"),
+            from openai import OpenAI
+            client = OpenAI(api_key=api_key)
+            
+            response = client.chat.completions.create(
+                model=config.get("summarization", {}).get("model", "gpt-4o-mini"),
                 messages=[
                     {"role": "system", "content": system_message},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=config.get("summarization", {}).get("temperature", 0.2),
-                max_tokens=config.get("summarization", {}).get("max_tokens", 2000),
+                max_tokens=config.get("summarization", {}).get("max_tokens", 500),
                 presence_penalty=0.1,
                 frequency_penalty=0.1
             )
