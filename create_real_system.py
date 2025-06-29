@@ -309,9 +309,9 @@ CONTENT TO ANALYZE:
                 content = content[:last_brace + 1]
 
             # Save raw output for debugging
-            os.makedirs("/Users/Dollar/Documents/ultrathink-enhanced/output", exist_ok=True)
+            os.makedirs("/Users/Dollar/Documents/ULTRATHINK-AI-PRO/output", exist_ok=True)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            with open(f"/Users/Dollar/Documents/ultrathink-enhanced/output/enhanced_gpt_raw_{timestamp}.txt", "w", encoding="utf-8") as f:
+            with open(f"/Users/Dollar/Documents/ULTRATHINK-AI-PRO/output/enhanced_gpt_raw_{timestamp}.txt", "w", encoding="utf-8") as f:
                 f.write(f"PROMPT:\n{prompt}\n\n" + "="*50 + "\n\nRESPONSE:\n" + content)
 
             # Parse and validate JSON
@@ -507,7 +507,7 @@ def fetch_enhanced_pricing_intelligence():
             
             # Save queries used for traceability
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            queries_file = f"/Users/Dollar/Documents/ultrathink-enhanced/output/queries_used_google_{timestamp}.json"
+            queries_file = f"/Users/Dollar/Documents/ULTRATHINK-AI-PRO/output/queries_used_google_{timestamp}.json"
             os.makedirs(os.path.dirname(queries_file), exist_ok=True)
             with open(queries_file, 'w') as f:
                 json.dump({
@@ -2225,7 +2225,7 @@ Focus on: pricing changes, vendor behavior, supply chain issues, cost optimizati
         
         # Save preview
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        preview_file = f"/Users/Dollar/Documents/ultrathink-enhanced/output/ultrathink_enhanced_{timestamp}.html"
+        preview_file = f"/Users/Dollar/Documents/ULTRATHINK-AI-PRO/output/ultrathink_enhanced_{timestamp}.html"
         
         with open(preview_file, 'w', encoding='utf-8') as f:
             f.write(html_content)

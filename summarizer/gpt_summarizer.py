@@ -645,10 +645,11 @@ Now analyze this content and generate role-specific intelligence following the e
             if last_brace != -1:
                 content = content[:last_brace + 1]
 
-            # Save enhanced raw output for debugging
-            os.makedirs("output", exist_ok=True)
+            # Save enhanced raw output for debugging  
+            output_dir = "/Users/Dollar/Documents/ULTRATHINK-AI-PRO/output"
+            os.makedirs(output_dir, exist_ok=True)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            with open(f"output/last_gpt_raw_{timestamp}.txt", "w", encoding="utf-8") as f:
+            with open(f"{output_dir}/last_gpt_raw_{timestamp}.txt", "w", encoding="utf-8") as f:
                 f.write(f"ENHANCED PROMPT:\n{prompt}\n\n" + "="*50 + "\n\nRESPONSE:\n" + content)
 
             # Parse and validate JSON
