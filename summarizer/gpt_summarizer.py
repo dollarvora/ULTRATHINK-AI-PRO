@@ -173,9 +173,10 @@ class GPTSummarizer:
         
         combined_content = "\n\n".join(processed_sections)
         
-        # Truncate to fit within token limits (roughly 8000 chars = ~2000 tokens)
-        if len(combined_content) > 8000:
-            combined_content = combined_content[:8000] + "\n\n[CONTENT TRUNCATED]"
+        # Truncate to fit within token limits - more conservative for old OpenAI versions
+        # Roughly 3000 chars = ~750 tokens (leaving room for system prompt)
+        if len(combined_content) > 3000:
+            combined_content = combined_content[:3000] + "\n\n[CONTENT TRUNCATED FOR TOKEN LIMIT]"
         
         if self.debug:
             logger.debug(f"🔍 Enhanced preprocessing: {total_items} items, {len([i for i in enhanced_items if i['detected_companies']])} with companies")
@@ -617,22 +618,23 @@ Now analyze this content and generate role-specific intelligence following the e
                 )
                 content = response.choices[0].message.content.strip()
             except (ImportError, AttributeError):
-                # Fall back to old OpenAI v0.x format
+                # Fall back to old OpenAI v0.x format - use Completion API
                 logger.info("Using legacy OpenAI API format (v0.x)")
                 openai.api_key = api_key
                 
-                response = openai.ChatCompletion.create(
-                    model=config.get("summarization", {}).get("model", "gpt-4o-mini"),
-                    messages=[
-                        {"role": "system", "content": system_message},
-                        {"role": "user", "content": prompt}
-                    ],
+                # Convert chat format to completion format
+                full_prompt = f"{system_message}\n\n{prompt}"
+                
+                # Use old completion API (not chat)
+                response = openai.Completion.create(
+                    model="text-davinci-003",  # v0.8.0 doesn't support gpt-4
+                    prompt=full_prompt,
                     temperature=config.get("summarization", {}).get("temperature", 0.2),
                     max_tokens=config.get("summarization", {}).get("max_tokens", 500),
                     presence_penalty=0.1,
                     frequency_penalty=0.1
                 )
-                content = response['choices'][0]['message']['content'].strip()
+                content = response['choices'][0]['text'].strip()
 
             # Enhanced JSON cleaning
             content = re.sub(r"^```(?:json)?\s*", "", content)
@@ -671,13 +673,16 @@ Now analyze this content and generate role-specific intelligence following the e
             
             return result
 
-        except openai.error.RateLimitError:
-            logger.error("❌ OpenAI rate limit exceeded")
-            return self._generate_fallback_summary()
+        except Exception as e:
+            error_type = type(e).__name__
+            error_msg = str(e).lower()
             
-        except openai.error.APIError as e:
-            logger.error(f"❌ OpenAI API error: {e}")
-            return self._generate_fallback_summary()
+            if "ratelimiterror" in error_type or "rate limit" in error_msg:
+                logger.error("❌ OpenAI rate limit exceeded")
+                return self._generate_fallback_summary()
+            elif "apierror" in error_type or "openai" in error_msg:
+                logger.error(f"❌ OpenAI API error: {e}")
+                return self._generate_fallback_summary()
             
         except json.JSONDecodeError as e:
             logger.error(f"❌ Invalid JSON from GPT: {e}")
