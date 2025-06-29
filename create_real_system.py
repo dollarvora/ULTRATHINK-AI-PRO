@@ -1607,7 +1607,11 @@ def run_enhanced_system():
     logger.info("=" * 80)
     
     try:
-        load_dotenv("/Users/Dollar/Documents/ultrathink-enhanced/.env")
+        # Change to ULTRATHINK-AI-PRO directory first
+        import os
+        os.chdir("/Users/Dollar/Documents/ULTRATHINK-AI-PRO")
+        
+        load_dotenv("/Users/Dollar/Documents/ULTRATHINK-AI-PRO/.env")
         
         # Step 1: Fetch pricing intelligence
         logger.info("\n🌐 STEP 1: Fetching Pricing Intelligence")
