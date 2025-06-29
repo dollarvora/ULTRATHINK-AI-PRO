@@ -1623,6 +1623,9 @@ def run_enhanced_system():
         logger.info("\n🧠 STEP 2: Running Enhanced GPT-4 Analysis")
         logger.info("-" * 44)
         
+        # Initialize real_insights early to avoid undefined variable errors
+        real_insights = []
+        
         # Use the sophisticated GPT summarizer system (like original)
         try:
             logger.info("🤖 Using sophisticated GPT summarizer with 150+ vendor intelligence...")
@@ -1862,14 +1865,27 @@ CONTENT TO ANALYZE:
 
 Focus on: pricing changes, vendor behavior, supply chain issues, cost optimization opportunities."""
 
-            response = openai.Completion.create(
-                model="gpt-3.5-turbo-instruct",
-                prompt=gpt_prompt,
-                max_tokens=1500,
-                temperature=0.3
-            )
-            
-            gpt_response = response.choices[0].text.strip()
+            # Support both old and new OpenAI versions
+            try:
+                # Try new format first
+                from openai import OpenAI
+                client = OpenAI(api_key=openai.api_key)
+                response = client.completions.create(
+                    model="gpt-3.5-turbo-instruct",
+                    prompt=gpt_prompt,
+                    max_tokens=1500,
+                    temperature=0.3
+                )
+                gpt_response = response.choices[0].text.strip()
+            except (ImportError, AttributeError):
+                # Fall back to old format
+                response = openai.Completion.create(
+                    model="gpt-3.5-turbo-instruct",
+                    prompt=gpt_prompt,
+                    max_tokens=1500,
+                    temperature=0.3
+                )
+                gpt_response = response.choices[0].text.strip()
             logger.info(f"✅ GPT provided insight analysis: {len(gpt_response)} chars")
             
             # Parse GPT response

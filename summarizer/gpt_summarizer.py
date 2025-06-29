@@ -598,22 +598,41 @@ Now analyze this content and generate role-specific intelligence following the e
             # Enhanced GPT call with industry-specific system message
             system_message = self._build_enhanced_system_message()
             
-            from openai import OpenAI
-            client = OpenAI(api_key=api_key)
-            
-            response = client.chat.completions.create(
-                model=config.get("summarization", {}).get("model", "gpt-4o-mini"),
-                messages=[
-                    {"role": "system", "content": system_message},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=config.get("summarization", {}).get("temperature", 0.2),
-                max_tokens=config.get("summarization", {}).get("max_tokens", 500),
-                presence_penalty=0.1,
-                frequency_penalty=0.1
-            )
-
-            content = response.choices[0].message.content.strip()
+            # Support both old and new OpenAI library versions
+            try:
+                # Try new OpenAI v1.0+ format
+                from openai import OpenAI
+                client = OpenAI(api_key=api_key)
+                
+                response = client.chat.completions.create(
+                    model=config.get("summarization", {}).get("model", "gpt-4o-mini"),
+                    messages=[
+                        {"role": "system", "content": system_message},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=config.get("summarization", {}).get("temperature", 0.2),
+                    max_tokens=config.get("summarization", {}).get("max_tokens", 500),
+                    presence_penalty=0.1,
+                    frequency_penalty=0.1
+                )
+                content = response.choices[0].message.content.strip()
+            except (ImportError, AttributeError):
+                # Fall back to old OpenAI v0.x format
+                logger.info("Using legacy OpenAI API format (v0.x)")
+                openai.api_key = api_key
+                
+                response = openai.ChatCompletion.create(
+                    model=config.get("summarization", {}).get("model", "gpt-4o-mini"),
+                    messages=[
+                        {"role": "system", "content": system_message},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=config.get("summarization", {}).get("temperature", 0.2),
+                    max_tokens=config.get("summarization", {}).get("max_tokens", 500),
+                    presence_penalty=0.1,
+                    frequency_penalty=0.1
+                )
+                content = response['choices'][0]['message']['content'].strip()
 
             # Enhanced JSON cleaning
             content = re.sub(r"^```(?:json)?\s*", "", content)
