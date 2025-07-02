@@ -56,8 +56,8 @@ CONFIG = {
     "sources": {
         "reddit": {
             "enabled": True,
-            "subreddits": ["sysadmin", "msp", "cybersecurity", "vmware", "AZURE", "aws", "networking", "devops", "homelab", "k8s", "kubernetes", "selfhosted", "DataHoarder", "storage", "linuxadmin", "PowerShell", "ITManagers", "BusinessIntelligence", "enterprise", "ITCareerQuestions"],
-            "post_limit": 50,
+            "subreddits": ["sysadmin", "msp", "vmware", "AZURE", "aws", "ITManagers", "BusinessIntelligence", "enterprise"],
+            "post_limit": 10,
             "comment_limit": 20
         },
         "twitter": {
@@ -80,7 +80,7 @@ CONFIG = {
     },
     "summarization": {
         "model": "gpt-4o-mini",
-        "max_tokens": 500,
+        "max_tokens": 1500,
         "temperature": 0.3
     },
     "email": {

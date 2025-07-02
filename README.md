@@ -255,6 +255,27 @@ The system analyzes from three perspectives:
 - **Twitter**: Real-time vendor monitoring (framework ready)
 - **LinkedIn**: Company update tracking (framework ready)
 
+### 4. Revolutionary GPT Prompt Engineering (v3.1.0)
+
+The system now employs a sophisticated two-tier extraction approach:
+
+**TIER 1 (Quantified Intelligence)**:
+```
+✅ "50% core licensing increase from $50 to $76 per core"
+✅ "Microsoft 365 E3 increasing 25% in Q2 2024, impacting 10k+ seat customers"
+```
+
+**TIER 2 (Strategic Intelligence)**:
+```
+✅ "Microsoft ProPlus quotes causing organizations to evaluate LibreOffice alternatives"
+✅ "Tenable renewal approaching, evaluating Qualys/Rapid7 competitive options"
+```
+
+**Advanced Anti-Hallucination System**:
+- 7 specific rules preventing fictional pricing scenarios
+- Concrete content-based examples: "Extract '50% core licensing increase from $50 to $76' from Renewal Pricing post"
+- Automatic rejection of stock market data in favor of actual vendor pricing intelligence
+
 ## Sample Output
 
 ### Executive Summary Format
@@ -298,7 +319,16 @@ while also auditing perpetual licenses driving migration to Proxmox
 
 ## Version History
 
-### v3.0.0 (Current) - Major Enhancement
+### v3.1.0 (Current) - GPT Prompt Engine Overhaul
+- **Revolutionary Two-Tier Insight Extraction**: TIER 1 (quantified data) + TIER 2 (strategic intelligence)
+- **Tier-Based Vendor Scoring**: 4-tier confidence system with score multipliers (3.0x → 1.0x)
+- **Enhanced Content Prioritization**: Reddit pricing discussions prioritized over stock market data
+- **Advanced Anti-Hallucination**: 7 specific rules preventing fictional pricing scenarios
+- **Flexible Insight Requirements**: Handles both quantified ($X/%) and strategic (acquisitions/licensing) data
+- **Concrete Examples System**: Real-world templates ("$50 → $76 core licensing = 50% increase")
+- **Debug Content Logging**: Full GPT input/output tracking for transparency
+
+### v3.0.0 - Major Enhancement
 - Colored confidence badges with visual impact
 - 64+ vendor coverage with 300+ aliases
 - Zero fallback policy for authentic data
