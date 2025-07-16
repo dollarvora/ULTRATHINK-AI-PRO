@@ -27,7 +27,7 @@ AUTHENTICATION REQUIRED:
 - REDDIT_CLIENT_SECRET: Reddit API application secret  
 - REDDIT_USER_AGENT: User agent string for API requests
 
-Author: Dollar (dollar3191@gmail.com)
+Author: Dollar (dollarvora@icloud.com)
 System: ULTRATHINK-AI-PRO v3.1.0 Hybrid
 """
 

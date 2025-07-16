@@ -36,7 +36,7 @@ OUTPUT:
 - Interactive priority filtering with elegant button controls
 - Proper semantic structure for accessibility compliance
 
-Author: Dollar (dollar3191@gmail.com)
+Author: Dollar (dollarvora@icloud.com)
 System: ULTRATHINK-AI-PRO v3.1.0 Hybrid
 """
 

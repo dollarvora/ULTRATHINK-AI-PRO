@@ -32,7 +32,7 @@ AUTHENTICATION:
 - Persistent session management via Playwright
 - Falls back to anonymous browsing if credentials not provided
 
-Author: Dollar (dollar3191@gmail.com)
+Author: Dollar (dollarvora@icloud.com)
 System: ULTRATHINK-AI-PRO v3.1.0 Hybrid
 """
 

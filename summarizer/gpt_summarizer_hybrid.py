@@ -30,7 +30,7 @@ INSIGHT GENERATION:
 AUTHENTICATION REQUIRED:
 - OPENAI_API_KEY: OpenAI GPT-4 API key for content analysis
 
-Author: Dollar (dollar3191@gmail.com)
+Author: Dollar (dollarvora@icloud.com)
 System: ULTRATHINK-AI-PRO v3.1.0 Hybrid
 """
 import openai
