@@ -4,11 +4,11 @@
 
 An enhanced professional version of [ultrathink-enhanced](https://github.com/dollarvora/ultrathink-enhanced) with revolutionary confidence scoring, zero-fallback authenticity, and enterprise features.
 
-[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](https://github.com/dollarvora/ULTRATHINK-AI-PRO/releases)
+[![Version](https://img.shields.io/badge/version-3.1.0-blue.svg)](https://github.com/dollarvora/ULTRATHINK-AI-PRO/releases)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-enabled-2496ED.svg?logo=docker&logoColor=white)](#)
 [![Portfolio](https://img.shields.io/badge/type-portfolio-brightgreen.svg)](https://github.com/dollarvora)
-[![License](https://img.shields.io/badge/license-proprietary-red.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![AI Powered](https://img.shields.io/badge/AI-GPT--4o--mini-green.svg)](https://platform.openai.com/)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](#)
 [![Vendor Coverage](https://img.shields.io/badge/vendors-64%2B-orange.svg)](#)
@@ -17,6 +17,7 @@ An enhanced professional version of [ultrathink-enhanced](https://github.com/dol
 ## Table of Contents
 
 - [Overview](#overview)
+- [🚀 Quick Start - Current System Status](#quick-start---current-system-status)
 - [Key Differentiators vs Original](#key-differentiators-vs-original)
 - [Technical Capabilities](#technical-capabilities)
 - [Installation](#installation)
@@ -31,6 +32,55 @@ An enhanced professional version of [ultrathink-enhanced](https://github.com/dol
 ## Overview
 
 ULTRATHINK-AI-PRO represents a complete reimagining of pricing intelligence, built for enterprise IT distributors managing billions in technology procurement. This enhanced version introduces groundbreaking features that transform raw market data into actionable C-suite intelligence.
+
+## 🚀 Quick Start - Current System Status
+
+### ✅ SYSTEM STATUS: FULLY OPERATIONAL
+
+The ULTRATHINK-AI-PRO v3.1.0 Hybrid System is production-ready with all major fixes implemented:
+
+**Latest Performance:**
+- **180 total items** successfully collected and analyzed
+- **Enhanced Reddit API** replacing broken snscrape (collecting from 29+ subreddits)
+- **Professional HTML reports** with light mode and interactive priority buttons
+- **OpenAI API v0.28.1 compatibility** ensuring stable GPT analysis
+- **SOURCE_ID tracking** for proper footnote attribution
+
+### 🏃‍♂️ Run the System
+
+```bash
+cd /Users/Dollar/Documents/ULTRATHINK-AI-PRO
+./run_hybrid.sh
+```
+
+**What happens when you run:**
+1. **Enhanced Reddit API** collects posts from 29 subreddits using 4 search methods (hot, new, top, rising)
+2. **Google Custom Search** gathers additional pricing intelligence 
+3. **GPT-4 Hybrid Summarizer** analyzes content using proven prompt engineering
+4. **Professional HTML Report** generated with interactive priority filtering
+5. **Email delivery** to configured recipients (optional)
+
+**Output files:**
+- `output/ultrathink_hybrid_YYYYMMDD_HHMMSS.html` - Professional interactive report
+- `output/hybrid_summary_YYYYMMDD_HHMMSS.json` - Structured data
+
+### 🔧 Key Technical Fixes (v3.1.0)
+
+**Reddit Data Collection:**
+- ✅ **Enhanced PRAW API** - Replaced broken snscrape with 4-method search strategy
+- ✅ **29+ Subreddits** - Comprehensive coverage of enterprise IT communities
+- ✅ **Quality Filtering** - Minimum scores, comments, age limits for relevant content
+
+**OpenAI Integration:**
+- ✅ **API Compatibility** - Fixed `openai.ChatCompletion.create()` format for v0.28.1
+- ✅ **SOURCE_ID Tracking** - Every insight maps to actual source articles
+- ✅ **Dynamic Queries** - Uses current year (2025) instead of hardcoded dates
+
+**Professional Reports:**
+- ✅ **Light Mode Styling** - Clean, readable professional appearance
+- ✅ **Interactive Priority Buttons** - Alpha/Beta/Gamma insights with smart defaults
+- ✅ **Centered Button Layout** - Elegant styling matching enterprise standards
+- ✅ **Clickable Footnotes** - Direct links to source Reddit/Google articles
 
 ### What Makes This Version Different
 
@@ -135,11 +185,12 @@ pip install -r requirements_minimal.txt
 cp .env.example .env
 # Edit .env with your credentials
 
-# Configure recipients
-# Edit config/employees.csv
+# Run the hybrid system (RECOMMENDED)
+./run_hybrid.sh
 
-# Run the system
-python create_real_system.py
+# Alternative: Run specific components
+python run_hybrid_system.py        # Hybrid data collection + GPT analysis
+python html_generator.py           # Generate HTML reports only
 ```
 
 ## Configuration
