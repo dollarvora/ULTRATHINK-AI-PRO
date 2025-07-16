@@ -1,6 +1,39 @@
 """
-LinkedIn Fetcher
-Fetches pricing-related content from LinkedIn using Playwright
+LinkedIn Fetcher - ULTRATHINK-AI-PRO LinkedIn Integration Framework
+=================================================================
+
+PURPOSE:
+- Framework ready for LinkedIn company update tracking and pricing intelligence
+- Monitors vendor company pages for pricing announcements and strategic updates
+- Uses Playwright for reliable web automation and session management
+- Provides structured data integration with existing ULTRATHINK-AI-PRO ecosystem
+
+TECHNICAL APPROACH:
+- Playwright browser automation with persistent user context
+- Company page monitoring for major IT vendors (Microsoft, Dell, HP, etc.)
+- Post content analysis for pricing signals and strategic announcements
+- Session management with automatic login handling
+- Quality filtering for relevant enterprise content
+
+INTEGRATION:
+- Part of ULTRATHINK-AI-PRO hybrid pricing intelligence system
+- Feeds into GPT summarizer alongside Reddit and Google data
+- Provides enterprise-grade vendor communication monitoring
+- Outputs structured data for HTML report generation
+
+ACTIVATION STATUS:
+- Framework ready, activation pending
+- Requires LinkedIn credentials in config for full functionality
+- Can be enabled by adding companies to linkedin.companies in config
+- Anonymous browsing available with limited functionality
+
+AUTHENTICATION:
+- LinkedIn credentials (username/password) for full access
+- Persistent session management via Playwright
+- Falls back to anonymous browsing if credentials not provided
+
+Author: Dollar (dollar3191@gmail.com)
+System: ULTRATHINK-AI-PRO v3.1.0 Hybrid
 """
 
 import asyncio

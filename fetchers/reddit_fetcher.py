@@ -140,17 +140,32 @@ class RedditFetcher(BaseFetcher):
         return await loop.run_in_executor(None, self._fetch_sync)
 
     def _fetch_sync(self) -> List[Dict[str, Any]]:
-        """Synchronous fetch method for Reddit using enhanced PRAW API approach"""
+        """Synchronous fetch method for Reddit using enhanced PRAW API approach with snscrape fallback"""
         all_posts = []
         
-        # Enhanced PRAW API fetching with multiple search methods
-        api_posts = self._fetch_via_enhanced_praw()
-        all_posts.extend(api_posts)
+        # Primary: Enhanced PRAW API fetching with multiple search methods
+        try:
+            api_posts = self._fetch_via_enhanced_praw()
+            all_posts.extend(api_posts)
+            self.logger.info(f"✅ Reddit enhanced API fetch: {len(api_posts)} collected")
+        except Exception as e:
+            self.logger.error(f"❌ Enhanced PRAW API failed: {e}")
+            api_posts = []
+        
+        # Fallback: snscrape for additional coverage when PRAW has issues
+        if len(api_posts) < 10:  # If insufficient data from PRAW
+            try:
+                self.logger.info("🔄 Activating snscrape fallback for additional Reddit coverage...")
+                fallback_posts = self._fetch_via_snscrape_fallback()
+                all_posts.extend(fallback_posts)
+                self.logger.info(f"✅ Snscrape fallback: {len(fallback_posts)} additional posts")
+            except Exception as e:
+                self.logger.error(f"❌ Snscrape fallback failed: {e}")
         
         # Deduplicate posts by ID
         deduplicated = self._deduplicate_posts(all_posts)
         
-        self.logger.info(f"Reddit enhanced API fetch: {len(api_posts)} collected → {len(deduplicated)} unique")
+        self.logger.info(f"Reddit total fetch: {len(all_posts)} collected → {len(deduplicated)} unique")
         
         return deduplicated
     
@@ -267,7 +282,94 @@ class RedditFetcher(BaseFetcher):
 
         return all_posts
     
-    # snscrape methods removed - using enhanced PRAW API approach instead
+    def _fetch_via_snscrape_fallback(self) -> List[Dict[str, Any]]:
+        """
+        Snscrape fallback method for additional Reddit coverage when PRAW has issues
+        
+        NOTE: This is a fallback method for when enhanced PRAW API fails or returns insufficient data.
+        snscrape can be unreliable and may break with Reddit changes, but provides additional coverage
+        when the primary API approach encounters issues.
+        
+        Returns: List of structured Reddit post data from snscrape
+        """
+        try:
+            import snscrape.modules.reddit as snreddit
+        except ImportError:
+            self.logger.warning("⚠️ snscrape not installed, fallback unavailable")
+            return []
+        
+        all_posts = []
+        
+        # Get priority keywords for targeted searches
+        keywords = self.config.get('keywords', {})
+        search_terms = []
+        
+        # Build search terms from keywords
+        if 'pricing' in keywords:
+            search_terms.extend(keywords['pricing'][:5])  # Top 5 pricing keywords
+        if 'urgency_indicators' in keywords:
+            search_terms.extend(keywords['urgency_indicators'][:3])  # Top 3 urgency keywords
+        
+        # Default search terms if no keywords configured
+        if not search_terms:
+            search_terms = ['pricing', 'license', 'cost', 'price increase', 'renewal']
+        
+        # Limit to most relevant subreddits for snscrape (to avoid timeouts)
+        priority_subreddits = self.source_config['subreddits'][:10]  # Top 10 subreddits
+        
+        for subreddit_name in priority_subreddits:
+            try:
+                # Search each subreddit with key terms
+                for term in search_terms[:3]:  # Limit to 3 terms per subreddit
+                    try:
+                        self.logger.info(f"🔍 Snscrape searching r/{subreddit_name} for '{term}'")
+                        
+                        # Create search query
+                        search_query = f"site:reddit.com/r/{subreddit_name} {term}"
+                        
+                        # Use snscrape to get posts
+                        posts_found = 0
+                        for post in snreddit.RedditSubredditScraper(subreddit_name).get_items():
+                            if posts_found >= 10:  # Limit posts per search
+                                break
+                            
+                            # Check if post is relevant and recent
+                            if (hasattr(post, 'title') and hasattr(post, 'created_utc') and
+                                term.lower() in post.title.lower() and
+                                post.created_utc > datetime.now() - timedelta(days=7)):
+                                
+                                post_data = {
+                                    'id': post.id,
+                                    'title': post.title,
+                                    'content': getattr(post, 'selftext', ''),
+                                    'url': post.url,
+                                    'author': str(post.author) if post.author else '[deleted]',
+                                    'subreddit': subreddit_name,
+                                    'score': getattr(post, 'score', 0),
+                                    'num_comments': getattr(post, 'num_comments', 0),
+                                    'created_at': datetime.fromtimestamp(post.created_utc),
+                                    'top_comments': [],  # snscrape doesn't provide comments easily
+                                    'flair': getattr(post, 'link_flair_text', ''),
+                                    'is_self': getattr(post, 'is_self', False),
+                                    'source': 'snscrape'  # Mark as snscrape source
+                                }
+                                
+                                all_posts.append(post_data)
+                                posts_found += 1
+                        
+                        if posts_found > 0:
+                            self.logger.info(f"✅ Found {posts_found} posts in r/{subreddit_name} for '{term}'")
+                        
+                    except Exception as e:
+                        self.logger.error(f"❌ Snscrape search failed for r/{subreddit_name} '{term}': {e}")
+                        continue
+                
+            except Exception as e:
+                self.logger.error(f"❌ Snscrape failed for r/{subreddit_name}: {e}")
+                continue
+        
+        self.logger.info(f"🔄 Snscrape fallback collected {len(all_posts)} posts")
+        return all_posts
     
     def _deduplicate_posts(self, posts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Deduplicate posts using content hash"""
