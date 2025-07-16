@@ -11,6 +11,19 @@ from typing import Dict, List, Any, Optional
 from utils.company_alias_matcher import get_company_matcher
 from utils.employee_manager import EmployeeManager, load_employee_manager
 
+# Import security components
+try:
+    from utils.security_manager import (
+        secure_api_call, 
+        SecureCredentialManager, 
+        InputValidator,
+        SecurityError
+    )
+    SECURITY_AVAILABLE = True
+except ImportError:
+    SECURITY_AVAILABLE = False
+    logger.warning("⚠️ Security manager not available")
+
 logger = logging.getLogger(__name__)
 
 class GPTSummarizer:
@@ -21,6 +34,11 @@ class GPTSummarizer:
         # Initialize enhanced components
         self.company_matcher = get_company_matcher(debug=debug)
         self.employee_manager = None  # Will be loaded when config is available
+        
+        # Initialize security components (will be updated when config is loaded)
+        self.credential_manager = None
+        self.input_validator = None
+        self._init_security_components()
         
         # Enhanced keyword system based on company mappings
         self.key_vendors = list(self.company_matcher.company_mappings.keys())
@@ -104,12 +122,364 @@ class GPTSummarizer:
         logger.info(f"✅ Enhanced GPT Summarizer initialized with {len(self.key_vendors)} companies")
         if debug:
             logger.debug(f"🔍 Company alias matcher loaded with extensive mappings")
+    
+    def _init_security_components(self, config=None):
+        """Initialize security components with optional config"""
+        if SECURITY_AVAILABLE:
+            self.credential_manager = SecureCredentialManager(config)
+            self.input_validator = InputValidator(config)
+        else:
+            self.credential_manager = None
+            self.input_validator = None
+    
+    def update_security_config(self, config):
+        """Update security components with new config"""
+        self._init_security_components(config)
+    
+    def _validate_api_key(self, api_key: str) -> bool:
+        """Validate OpenAI API key securely"""
+        if self.credential_manager:
+            return self.credential_manager.validate_api_key('openai', api_key, self.config)
+        else:
+            # Fallback validation
+            return bool(api_key and len(api_key) > 20)
+    
+    def _sanitize_prompt(self, prompt: str) -> str:
+        """Sanitize input prompt for security"""
+        if self.input_validator:
+            # Use config setting for max_prompt_length
+            max_length = None
+            if self.config and 'security' in self.config:
+                max_length = self.config['security']['input_validation'].get('max_prompt_length', 50000)
+            return self.input_validator.sanitize_text(prompt, max_length=max_length)
+        else:
+            # Fallback sanitization
+            return prompt[:50000] if prompt else ""
+    
+    def _secure_openai_call(self, api_key: str, system_message: str, prompt: str, config: Dict[str, Any]) -> str:
+        """Make secure OpenAI API call with rate limiting and validation"""
+        
+        # Check rate limits if security is available
+        if self.credential_manager and not self.credential_manager.check_rate_limit('openai'):
+            raise SecurityError("OpenAI API rate limit exceeded")
+        
+        # Validate API key
+        if not self._validate_api_key(api_key):
+            raise SecurityError("Invalid OpenAI API key")
+        
+        # Sanitize inputs
+        sanitized_prompt = self._sanitize_prompt(prompt)
+        sanitized_system = self._sanitize_prompt(system_message)
+        
+        if len(sanitized_prompt) != len(prompt):
+            logger.warning("🔒 Prompt was sanitized for security")
+        
+        # Set API key securely
+        openai.api_key = api_key
+        
+        # Make the API call with enhanced error handling and fallback
+        try:
+            # Try modern ChatCompletion API first (if available)
+            if hasattr(openai, 'ChatCompletion'):
+                model_name = config.get("summarization", {}).get("model", "gpt-4o-mini")
+                response = openai.ChatCompletion.create(
+                    model=model_name,
+                    messages=[
+                        {"role": "system", "content": sanitized_system},
+                        {"role": "user", "content": sanitized_prompt}
+                    ],
+                    temperature=config.get("summarization", {}).get("temperature", 0.3),
+                    max_tokens=config.get("summarization", {}).get("max_tokens", 1500),
+                    presence_penalty=0.1,
+                    frequency_penalty=0.1
+                )
+                
+                # Validate response
+                if not response or not response.choices or not response.choices[0].message:
+                    raise ValueError("Empty or invalid response from ChatCompletion")
+                
+                content = response.choices[0].message.content
+            else:
+                # Fallback to old Completion API for older openai versions
+                logger.info("🔄 Using Completion API (older OpenAI version)")
+                full_prompt = f"{sanitized_system}\n\n{sanitized_prompt}"
+                completion_model = "gpt-3.5-turbo-instruct"
+                
+                response = openai.Completion.create(
+                    model=completion_model,
+                    prompt=full_prompt,
+                    temperature=config.get("summarization", {}).get("temperature", 0.3),
+                    max_tokens=config.get("summarization", {}).get("max_tokens", 1500),
+                    presence_penalty=0.1,
+                    frequency_penalty=0.1,
+                    stop=None
+                )
+                
+                # Validate response
+                if not response or not response.choices or not response.choices[0]:
+                    raise ValueError("Empty or invalid response from Completion")
+                
+                content = response.choices[0].text
+        except Exception as e:
+            # If ChatCompletion fails, try fallback to Completion API
+            if hasattr(openai, 'ChatCompletion'):
+                logger.warning(f"🔄 ChatCompletion failed: {e}, falling back to Completion API")
+                try:
+                    full_prompt = f"{sanitized_system}\n\n{sanitized_prompt}"
+                    completion_model = "gpt-3.5-turbo-instruct"
+                    
+                    response = openai.Completion.create(
+                        model=completion_model,
+                        prompt=full_prompt,
+                        temperature=config.get("summarization", {}).get("temperature", 0.3),
+                        max_tokens=config.get("summarization", {}).get("max_tokens", 1500),
+                        presence_penalty=0.1,
+                        frequency_penalty=0.1,
+                        stop=None
+                    )
+                    
+                    if not response or not response.choices or not response.choices[0]:
+                        raise ValueError("Empty response from Completion fallback")
+                    
+                    content = response.choices[0].text
+                except Exception as fallback_error:
+                    logger.error(f"🔒 Completion API fallback also failed: {str(fallback_error)}")
+                    raise SecurityError("OpenAI API call failed") from fallback_error
+            else:
+                logger.error(f"🔒 Secure OpenAI API call failed: {str(e)}")
+                raise SecurityError("OpenAI API call failed") from e
+        
+        if not content:
+            raise ValueError("OpenAI returned empty content")
+        
+        # Sanitize response
+        sanitized_content = self._sanitize_prompt(content.strip())
+        
+        # Record successful API call for rate limiting
+        if self.credential_manager:
+            self.credential_manager.record_api_call('openai')
+        
+        logger.info(f"✅ Secure OpenAI API call successful, content length: {len(sanitized_content)}")
+        return sanitized_content
+    
+    def _fallback_openai_call(self, api_key: str, system_message: str, prompt: str, config: Dict[str, Any]) -> str:
+        """Fallback OpenAI API call for when security manager is not available"""
+        openai.api_key = api_key
+        
+        # Try modern ChatCompletion API first
+        try:
+            if hasattr(openai, 'ChatCompletion'):
+                model_name = config.get("summarization", {}).get("model", "gpt-4o-mini")
+                response = openai.ChatCompletion.create(
+                    model=model_name,
+                    messages=[
+                        {"role": "system", "content": system_message},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=config.get("summarization", {}).get("temperature", 0.3),
+                    max_tokens=config.get("summarization", {}).get("max_tokens", 1500),
+                    presence_penalty=0.1,
+                    frequency_penalty=0.1
+                )
+                
+                if not response or not response.choices or not response.choices[0].message:
+                    raise ValueError("Empty response from ChatCompletion")
+                
+                content = response.choices[0].message.content
+                if not content:
+                    raise ValueError("Empty content from ChatCompletion")
+                
+                return content.strip()
+            else:
+                raise ImportError("ChatCompletion not available")
+                
+        except Exception as e:
+            logger.warning(f"ChatCompletion failed: {e}, falling back to Completion API")
+            
+            # Fallback to old Completion API
+            full_prompt = f"{system_message}\n\n{prompt}"
+            completion_model = "text-davinci-003"
+            
+            response = openai.Completion.create(
+                model=completion_model,
+                prompt=full_prompt,
+                temperature=config.get("summarization", {}).get("temperature", 0.3),
+                max_tokens=config.get("summarization", {}).get("max_tokens", 1500),
+                presence_penalty=0.1,
+                frequency_penalty=0.1,
+                stop=None
+            )
+            
+            if not response or not response.choices or not response.choices[0]:
+                raise ValueError("Empty response from Completion")
+            
+            content = response.choices[0].text
+            if not content:
+                raise ValueError("Empty text from Completion")
+            
+            return content.strip()
+
+    def _detect_url_truncation(self, content: str) -> bool:
+        """
+        Improved URL truncation detection with comprehensive patterns
+        Returns True if URL truncation is detected in the content
+        """
+        # Enhanced patterns to detect various URL truncation scenarios
+        patterns = [
+            # Pattern 1: URLs truncated to just "https:" with non-URL characters
+            r'"url":\s*"https?:\s*[^a-z/"]',
+            
+            # Pattern 2: URLs truncated to just "https:" at end of line
+            r'"url":\s*"https?:\s*$',
+            
+            # Pattern 3: URLs truncated to just "https:" without trailing space
+            r'"url":\s*"https?:$',
+            
+            # Pattern 4: URLs followed by newline with missing quote
+            r'"url":\s*"https?:\s*\n',
+            
+            # Pattern 5: URLs ending with "https:" then immediate newline
+            r'"url":\s*"https?:\n',
+            
+            # Pattern 6: URLs with incomplete domain structures
+            r'"url":\s*"https?://[^/"\s]*[^a-zA-Z0-9\-._~:/?#[\]@!$&\'()*+,;="]',
+            
+            # Pattern 7: URLs cut off mid-domain
+            r'"url":\s*"https?://[a-zA-Z0-9.-]*[^a-zA-Z0-9.-/]?\s*["\n]',
+            
+            # Pattern 8: Malformed JSON with unclosed URL quotes
+            r'"url":\s*"https?://[^"]*$',
+        ]
+        
+        detected_patterns = []
+        for i, pattern in enumerate(patterns, 1):
+            matches = re.findall(pattern, content, re.MULTILINE)
+            if matches:
+                detected_patterns.append(f"P{i}")
+                logger.info(f"URL truncation Pattern {i} detected: {matches[:3]}...")  # Show first 3 matches
+        
+        if detected_patterns:
+            logger.info(f"URL truncation detected with patterns: {', '.join(detected_patterns)}")
+            return True
+        
+        return False
+
+    def _extract_footnotes_safely(self, content: str) -> Optional[str]:
+        """
+        Enhanced footnote extraction with multiple fallback patterns
+        Returns the footnotes content or None if extraction fails
+        """
+        # Primary pattern: standard footnotes array
+        footnotes_patterns = [
+            r'"footnotes":\s*\[(.*?)\]',
+            r'"footnotes":\s*\[([^\]]+)\]',
+            r'"footnotes":\s*\[\s*(.*?)\s*\]',
+            # Handle malformed JSON with missing closing bracket
+            r'"footnotes":\s*\[(.*?)(?:\]|$)',
+        ]
+        
+        for pattern in footnotes_patterns:
+            try:
+                match = re.search(pattern, content, re.DOTALL)
+                if match:
+                    footnotes_content = match.group(1)
+                    logger.debug(f"Footnotes extracted using pattern: {pattern[:30]}...")
+                    return footnotes_content
+            except Exception as e:
+                logger.debug(f"Pattern {pattern[:30]}... failed: {e}")
+                continue
+        
+        logger.warning("Could not extract footnotes section with any pattern")
+        return None
+
+    def _recover_url_with_strategies(self, footnote_id: str, source: str, title: str, 
+                                   raw_content: Optional[str] = None) -> str:
+        """
+        Enhanced 3-strategy URL recovery with better error handling
+        Returns a recovered URL or generates a fallback URL
+        """
+        if not raw_content:
+            logger.debug(f"No raw content available for footnote {footnote_id}, using fallback")
+            return self._generate_fallback_url(source, title, footnote_id)
+        
+        # Strategy 1: Extract complete footnotes from raw content by ID matching
+        try:
+            raw_footnotes = re.findall(
+                r'\{"id":\s*(\d+),\s*"source":\s*"([^"]*)",\s*"title":\s*"([^"]*)",\s*"url":\s*"([^"]+)"\}', 
+                raw_content
+            )
+            
+            for raw_footnote in raw_footnotes:
+                if raw_footnote[0] == footnote_id:
+                    recovered_url = raw_footnote[3]
+                    logger.info(f"Strategy 1 SUCCESS: Recovered URL for footnote {footnote_id}: {recovered_url}")
+                    return recovered_url
+        except Exception as e:
+            logger.debug(f"Strategy 1 failed for footnote {footnote_id}: {e}")
+        
+        # Strategy 2: Extract URLs by position from footnotes array
+        try:
+            footnotes_section = re.search(r'"footnotes":\s*\[(.*?)\]', raw_content, re.DOTALL)
+            if footnotes_section:
+                footnotes_text = footnotes_section.group(1)
+                url_patterns = re.findall(r'"url":\s*"([^"]+)"', footnotes_text)
+                footnote_index = int(footnote_id) - 1  # Convert to 0-based index
+                
+                if 0 <= footnote_index < len(url_patterns):
+                    recovered_url = url_patterns[footnote_index]
+                    logger.info(f"Strategy 2 SUCCESS: Recovered URL for footnote {footnote_id}: {recovered_url}")
+                    return recovered_url
+        except Exception as e:
+            logger.debug(f"Strategy 2 failed for footnote {footnote_id}: {e}")
+        
+        # Strategy 3: Find URL by title matching in raw content
+        try:
+            if title:
+                # More flexible title matching pattern
+                title_patterns = [
+                    rf'"title":\s*"[^"]*{re.escape(title)}[^"]*"[^}}]*"url":\s*"([^"]+)"',
+                    rf'"title":\s*"[^"]*{re.escape(title[:20])}[^"]*"[^}}]*"url":\s*"([^"]+)"',  # Partial title match
+                    rf'"url":\s*"([^"]+)"[^}}]*"title":\s*"[^"]*{re.escape(title)}[^"]*"',  # URL before title
+                ]
+                
+                for pattern in title_patterns:
+                    match = re.search(pattern, raw_content, re.IGNORECASE)
+                    if match:
+                        recovered_url = match.group(1)
+                        logger.info(f"Strategy 3 SUCCESS: Recovered URL for footnote {footnote_id} via title: {recovered_url}")
+                        return recovered_url
+        except Exception as e:
+            logger.debug(f"Strategy 3 failed for footnote {footnote_id}: {e}")
+        
+        # All strategies failed, generate fallback
+        logger.warning(f"All recovery strategies failed for footnote {footnote_id}, using fallback")
+        return self._generate_fallback_url(source, title, footnote_id)
+
+    def _generate_fallback_url(self, source: str, title: str, footnote_id: str) -> str:
+        """
+        Generate intelligent fallback URLs based on source and title
+        """
+        if not title:
+            title = f"Pricing Intelligence {footnote_id}"
+        
+        if source.lower() == "google":
+            # Create Google search URL
+            query = title.replace(' ', '+').replace('"', '').replace("'", '')
+            return f"https://google.com/search?q={query}"
+        elif source.lower() == "reddit":
+            # Create Reddit search URL or subreddit link
+            query = title.replace(' ', '+').replace('"', '').replace("'", '')
+            return f"https://reddit.com/search?q={query}"
+        else:
+            # Generic fallback for other sources
+            query = title.replace(' ', '+').replace('"', '').replace("'", '')
+            return f"https://google.com/search?q={query}+{source}"
 
     def _is_pricing_relevant(self, text: str) -> bool:
-        """Filter out non-pricing content before GPT analysis"""
+        """Enhanced pricing relevance detection with dynamic scoring - keeps all existing logic intact"""
         text_lower = text.lower()
         
-        # PRICING KEYWORDS - Must contain at least one
+        # ORIGINAL PRICING KEYWORDS - Must contain at least one (PRESERVED)
         pricing_keywords = [
             'price', 'cost', 'pricing', 'expensive', 'cheap', 'discount', 'rebate',
             'margin', 'profit', 'budget', 'fee', 'charge', 'billing', 'invoice',
@@ -119,7 +489,15 @@ class GPTSummarizer:
             'free', 'trial', 'demo', 'savings', 'revenue', 'financial'
         ]
         
-        # REJECT KEYWORDS - Automatically reject if contains these
+        # ADDITIONAL B2B PROCUREMENT KEYWORDS (NEW - ADDITIVE)
+        additional_pricing_keywords = [
+            'procurement', 'vendor', 'rfp', 'quote', 'proposal', 'negotiation',
+            'tco', 'roi', 'spend', 'sourcing', 'supplier', 'distributor',
+            'maintenance', 'support cost', 'enterprise pricing', 'volume discount',
+            'licensing change', 'price increase', 'cost optimization'
+        ]
+        
+        # ORIGINAL REJECT KEYWORDS (PRESERVED)
         reject_keywords = [
             'how to', 'tutorial', 'guide', 'setup', 'configure', 'install',
             'troubleshoot', 'debug', 'error', 'problem', 'issue', 'fix',
@@ -128,17 +506,41 @@ class GPTSummarizer:
             'three pillars', 'product engineers', 'implementation'
         ]
         
-        # Reject if contains reject keywords
+        # ADDITIONAL TECHNICAL REJECT PATTERNS (NEW - ADDITIVE)
+        additional_reject_keywords = [
+            'stock price', 'share price', 'nasdaq', 'nyse', 'market cap', 'earnings report',
+            'how to setup', 'configuration guide', 'troubleshooting steps'
+        ]
+        
+        # ORIGINAL LOGIC: Reject if contains reject keywords (PRESERVED)
         for keyword in reject_keywords:
             if keyword in text_lower:
                 return False
+                
+        # NEW: Additional reject filters
+        for keyword in additional_reject_keywords:
+            if keyword in text_lower:
+                return False
         
-        # Accept if contains pricing keywords
+        # ORIGINAL LOGIC: Accept if contains pricing keywords (PRESERVED)
         for keyword in pricing_keywords:
             if keyword in text_lower:
                 return True
+                
+        # NEW: Accept if contains additional pricing keywords
+        for keyword in additional_pricing_keywords:
+            if keyword in text_lower:
+                return True
         
-        # Reject if no pricing keywords found
+        # NEW: Vendor context boost - if 2+ vendors mentioned, likely pricing relevant
+        try:
+            vendor_count = len(self.company_matcher.find_companies_in_text(text).matched_companies)
+            if vendor_count >= 2:
+                return True
+        except:
+            pass  # Fallback to original logic if company matching fails
+        
+        # ORIGINAL LOGIC: Reject if no pricing keywords found (PRESERVED)
         return False
 
     def _deduplicate_content(self, content_by_source: Dict[str, List[Dict]]) -> Dict[str, List[Dict]]:
@@ -178,9 +580,9 @@ class GPTSummarizer:
                 continue
                 
             section_content = []
-            # Prioritize Reddit content which tends to have more pricing discussions
-            limit = 10 if source.lower() == 'reddit' else 3
-            for item in items[:limit]:  # Limit items per source for token efficiency
+            # Adaptive processing limits based on content quality and source
+            limit = self._calculate_adaptive_processing_limit(source, items)
+            for item in items[:limit]:  # Dynamic limit based on content quality
                 # Enhanced item processing with company detection
                 title = item.get('title', '')
                 content = item.get('content', item.get('text', ''))
@@ -228,6 +630,9 @@ class GPTSummarizer:
                     item_text += f"URGENCY: {urgency_level.upper()}\n"
                 if created_at:
                     item_text += f"DATE: {created_at}\n"
+                if url:
+                    item_text += f"URL: {url}\n"
+                item_text += f"SOURCE_ID: {source}_{total_items}\n"
                 item_text += "---\n"
                 
                 section_content.append(item_text)
@@ -299,6 +704,57 @@ class GPTSummarizer:
                 return tier_data['confidence_level']
         return self.vendor_tiers['tier4']['confidence_level']
     
+    def _calculate_adaptive_processing_limit(self, source: str, items: List[Dict]) -> int:
+        """Calculate adaptive processing limit based on content quality and source type"""
+        base_limits = {
+            'reddit': 10,  # Preserved original limit
+            'google': 3,   # Preserved original limit
+            'twitter': 5,
+            'linkedin': 4
+        }
+        
+        base_limit = base_limits.get(source.lower(), 5)
+        
+        # Quality-based adjustments (preserve high-quality content processing)
+        quality_score = 0
+        vendor_rich_items = 0
+        pricing_relevant_items = 0
+        
+        # Quick quality assessment of first 20 items
+        sample_size = min(20, len(items))
+        for item in items[:sample_size]:
+            title = item.get('title', '')
+            content = item.get('content', item.get('text', ''))
+            full_text = f"{title} {content}"
+            
+            # Check vendor richness
+            try:
+                vendor_count = len(self.company_matcher.find_companies_in_text(full_text).matched_companies)
+                if vendor_count >= 2:
+                    vendor_rich_items += 1
+                elif vendor_count == 1:
+                    vendor_rich_items += 0.5
+            except:
+                pass
+                
+            # Check pricing relevance  
+            if self._is_pricing_relevant(full_text):
+                pricing_relevant_items += 1
+        
+        # Calculate quality ratios
+        vendor_ratio = vendor_rich_items / sample_size if sample_size > 0 else 0
+        pricing_ratio = pricing_relevant_items / sample_size if sample_size > 0 else 0
+        
+        # Adaptive limit calculation
+        if vendor_ratio >= 0.3 and pricing_ratio >= 0.2:  # High quality content
+            adapted_limit = int(base_limit * 1.5)  # Increase processing
+        elif vendor_ratio >= 0.15 or pricing_ratio >= 0.1:  # Medium quality
+            adapted_limit = base_limit  # Keep original limit
+        else:  # Low quality content
+            adapted_limit = max(2, int(base_limit * 0.7))  # Reduce processing but maintain minimum
+        
+        return min(adapted_limit, 20)  # Cap at 20 for performance
+
     def _detect_urgency_level(self, text: str) -> str:
         """Detect urgency level based on content analysis"""
         text_lower = text.lower()
@@ -446,6 +902,7 @@ Tier 4 (Emerging): All other vendors with specific pricing data
 - Must reference actual vendor names from the content
 - Must include source attribution via footnotes
 - Convert available intelligence into actionable insights
+- Use the URL and TITLE from each source item for proper footnote attribution
 
 📐 REQUIRED JSON FORMAT:
 
@@ -455,13 +912,13 @@ Tier 4 (Emerging): All other vendors with specific pricing data
       "role": "Pricing Profitability Team", 
       "summary": "Quantified margin impacts and vendor pricing behavior analysis",
       "key_insights": [
-        "🔴 ACTUAL insight from the content, like '50% core licensing increase from $50 to $76 per core' <sup>[1]</sup>",
-        "🟡 ACTUAL insight like 'Microsoft ProPlus quotes causing organizations to evaluate LibreOffice' <sup>[2]</sup>",
-        "DO NOT return this template text - extract REAL insights from the content provided"
+        "🔴 ACTUAL insight from the content with footnote reference <sup>[1]</sup>",
+        "🟡 ACTUAL insight from the content with footnote reference <sup>[2]</sup>",
+        "Extract REAL insights from the provided content with proper source attribution"
       ],
       "footnotes": [
-        {{"id": 1, "source": "Reddit", "title": "[Exact title from source]", "url": "https://reddit.com/r/example/12345"}},
-        {{"id": 2, "source": "Google", "title": "[Exact title from source]", "url": "https://example.com/article"}}
+        {{"id": 1, "source": "[Reddit/Google]", "title": "[Use exact TITLE from source item]", "url": "[Use exact URL from source item]"}},
+        {{"id": 2, "source": "[Reddit/Google]", "title": "[Use exact TITLE from source item]", "url": "[Use exact URL from source item]"}}
       ],
       "top_vendors": [
         {{"vendor": "Microsoft", "mentions": 3, "highlighted": true, "confidence": "high"}},
@@ -685,9 +1142,14 @@ RETURN VALID JSON WITH QUANTIFIED PRICING INTELLIGENCE:"""
         
         return fallback
 
-    def _generate_pricing_fallback_summary(self, roles: set) -> Dict[str, Any]:
+    def _generate_pricing_fallback_summary(self, roles: set, raw_content: str = None) -> Dict[str, Any]:
         """Generate B2B pricing-focused fallback summary when no insights are found"""
         logger.warning("🚨 Generating B2B pricing intelligence fallback summary")
+        
+        # Try to extract footnotes from raw content before generating fallback
+        footnotes = []
+        if raw_content:
+            footnotes = self._extract_footnotes_from_raw(raw_content)
         
         fallback = {
             "role_summaries": {
@@ -699,6 +1161,7 @@ RETURN VALID JSON WITH QUANTIFIED PRICING INTELLIGENCE:"""
                         "🔍 Recommend manual monitoring of key distributor (SYNNEX, Ingram, CDW) communications",
                         "⏰ Automated pricing intelligence will resume with next scheduled scan"
                     ],
+                    "footnotes": footnotes,  # Preserve footnotes from raw content
                     "top_vendors": [],
                     "sources": []
                 }
@@ -709,10 +1172,71 @@ RETURN VALID JSON WITH QUANTIFIED PRICING INTELLIGENCE:"""
         
         return fallback
 
+    def _extract_footnotes_from_raw(self, raw_content: str) -> List[Dict[str, Any]]:
+        """Extract footnotes from raw GPT response content"""
+        import re
+        import json
+        
+        footnotes = []
+        try:
+            # The raw content has both repr and readable versions
+            # Use the readable version which is cleaner JSON
+            if 'OPENAI RAW RESPONSE (readable):' in raw_content:
+                # Extract the clean JSON part after the readable marker
+                start_idx = raw_content.find('OPENAI RAW RESPONSE (readable):')
+                after_marker = raw_content[start_idx + len('OPENAI RAW RESPONSE (readable):'):]
+                # Find the start of the JSON object
+                json_start = after_marker.find('{')
+                if json_start >= 0:
+                    clean_json_part = after_marker[json_start:].strip()
+                else:
+                    clean_json_part = after_marker.strip()
+            else:
+                # Fallback to working with the original string
+                clean_json_part = raw_content
+            
+            # Try to find footnotes array using a more robust pattern
+            footnote_pattern = r'"footnotes":\s*\[(.*?)\]'
+            match = re.search(footnote_pattern, clean_json_part, re.DOTALL)
+            
+            if match:
+                footnotes_str = '[' + match.group(1) + ']'
+                
+                # Clean up escaped characters and control characters
+                footnotes_str = footnotes_str.replace('\\n', ' ')  # Replace escaped newlines
+                footnotes_str = footnotes_str.replace('\\"', '"')  # Unescape quotes
+                footnotes_str = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', footnotes_str)  # Remove control chars
+                
+                # Parse the JSON
+                footnotes_data = json.loads(footnotes_str)
+                
+                for footnote in footnotes_data:
+                    if isinstance(footnote, dict) and 'url' in footnote:
+                        # Clean up the footnote data
+                        clean_footnote = {
+                            'id': footnote.get('id', ''),
+                            'source': footnote.get('source', 'Unknown').replace('[', '').replace(']', ''),
+                            'title': footnote.get('title', 'Source'),
+                            'url': footnote.get('url', '#')
+                        }
+                        footnotes.append(clean_footnote)
+                        
+                logger.info(f"✅ Extracted {len(footnotes)} footnotes from raw content")
+            else:
+                logger.warning("No footnotes pattern found in raw content")
+                
+        except Exception as e:
+            logger.warning(f"⚠️ Could not extract footnotes from raw content: {e}")
+        
+        return footnotes
+
     def generate_summary(self, content_by_source: Dict[str, Any], config: Dict[str, Any]) -> Dict[str, Any]:
         """Enhanced summary generation with company alias intelligence and role-specific targeting"""
         logger.info("🔍 Starting generate_summary function...")
         self.config = config
+        
+        # Update security components with new config
+        self.update_security_config(config)
         
         # Initialize OpenAI with legacy format
         api_key = os.getenv("OPENAI_API_KEY")
@@ -735,73 +1259,21 @@ RETURN VALID JSON WITH QUANTIFIED PRICING INTELLIGENCE:"""
             # Enhanced GPT call with industry-specific system message
             system_message = self._build_enhanced_system_message()
             
-            # Support both old and new OpenAI library versions
-            try:
-                # Try modern ChatCompletion API (works with v0.x and v1.x)
-                logger.info("Attempting modern ChatCompletion API")
-                
-                # Use ChatCompletion for both old and new versions
-                if hasattr(openai, 'ChatCompletion'):
-                    openai.api_key = api_key
-                    response = openai.ChatCompletion.create(
-                        model="gpt-3.5-turbo",  # Use chat model instead of instruct
-                        messages=[
-                            {"role": "system", "content": system_message},
-                            {"role": "user", "content": prompt}
-                        ],
-                        temperature=config.get("summarization", {}).get("temperature", 0.3),
-                        max_tokens=config.get("summarization", {}).get("max_tokens", 1500),
-                        presence_penalty=0.1,
-                        frequency_penalty=0.1
-                    )
-                    
-                    # Validate response before accessing content
-                    if not response or not response.choices or not response.choices[0].message:
-                        raise ValueError("Empty or invalid response from OpenAI ChatCompletion")
-                    
-                    content = response.choices[0].message.content
-                    if not content:
-                        raise ValueError("OpenAI returned empty content")
-                    
-                    content = content.strip()
-                    logger.info(f"✅ ChatCompletion API successful, content length: {len(content)}")
-                else:
-                    raise ImportError("ChatCompletion not available")
-                    
-            except (ImportError, AttributeError, ValueError, Exception) as e:
-                # Fall back to old OpenAI v0.x format - use Completion API
-                logger.warning(f"ChatCompletion failed: {e}, falling back to legacy Completion API")
-                openai.api_key = api_key
-                
-                # Convert chat format to completion format
-                full_prompt = f"{system_message}\n\n{prompt}"
-                
-                # Use old completion API with current model
-                response = openai.Completion.create(
-                    model="gpt-3.5-turbo-instruct",  # Current completion model
-                    prompt=full_prompt,
-                    temperature=config.get("summarization", {}).get("temperature", 0.3),
-                    max_tokens=config.get("summarization", {}).get("max_tokens", 1500),
-                    presence_penalty=0.1,
-                    frequency_penalty=0.1,
-                    stop=None
-                )
-                
-                # Validate response before accessing content
-                if not response or not response.choices or not response.choices[0]:
-                    raise ValueError("Empty or invalid response from OpenAI Completion")
-                
-                content = response.choices[0].text
-                
-                # Log raw content before any processing
-                logger.info(f"📄 Raw OpenAI response length: {len(content)}")
-                logger.info(f"📄 Raw content preview: {repr(content[:200])}...")
-                
-                if not content:
-                    raise ValueError("OpenAI Completion returned empty text")
-                
-                content = content.strip()
-                logger.info(f"✅ Completion API successful, content length: {len(content)}")
+            # Use secure API call if available
+            if SECURITY_AVAILABLE:
+                try:
+                    logger.info("🔒 Using secure OpenAI API call")
+                    content = self._secure_openai_call(api_key, system_message, prompt, config)
+                except SecurityError as e:
+                    logger.error(f"🔒 Secure API call failed: {e}")
+                    raise
+                except Exception as e:
+                    logger.warning(f"🔒 Secure API call failed, falling back to standard call: {e}")
+                    # Fall back to standard call if secure call fails
+                    content = self._fallback_openai_call(api_key, system_message, prompt, config)
+            else:
+                logger.warning("⚠️ Security not available, using fallback OpenAI call")
+                content = self._fallback_openai_call(api_key, system_message, prompt, config)
 
             logger.info("🔍 About to start content processing...")
             # Save raw content before cleaning for debugging
@@ -810,7 +1282,7 @@ RETURN VALID JSON WITH QUANTIFIED PRICING INTELLIGENCE:"""
             
             # Save raw response to file for debugging
             logger.info("🔍 Creating output directory...")
-            output_dir = "/Users/Dollar/Documents/ULTRATHINK-AI-PRO/output"
+            output_dir = "output"
             os.makedirs(output_dir, exist_ok=True)
             logger.info("🔍 Generating timestamp...")
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -838,7 +1310,8 @@ RETURN VALID JSON WITH QUANTIFIED PRICING INTELLIGENCE:"""
             logger.info("✅ Brace trimming complete")
             
             # Remove JavaScript-style comments that break JSON parsing
-            content = re.sub(r'//.*?$', '', content, flags=re.MULTILINE)
+            # Use more specific pattern to avoid matching URL paths like "/comments/"
+            content = re.sub(r'(?:^|\s)//(?!\S).*?$', '', content, flags=re.MULTILINE)
             
             logger.info("🔍 Starting content cleaning...")
             # Fix Unicode escape sequences for emojis (common in GPT output)
@@ -871,31 +1344,29 @@ RETURN VALID JSON WITH QUANTIFIED PRICING INTELLIGENCE:"""
             logger.info("✅ JSON trimming complete")
             
             # PROACTIVE URL TRUNCATION FIX - Apply during cleaning phase before any JSON parsing
-            pattern5 = bool(re.search(r'"url":\s*"https?:\n', content))
-            if pattern5:
+            url_truncation_detected = self._detect_url_truncation(content)
+            if url_truncation_detected:
                 logger.info("🔧 Proactive URL truncation fix detected and applying...")
                 
                 if '"footnotes": [' in content:
                     try:
-                        # Extract footnotes section
-                        footnotes_match = re.search(r'"footnotes":\s*\[(.*?)\]', content, re.DOTALL)
-                        if footnotes_match:
-                            footnotes_content = footnotes_match.group(1)
+                        # Use enhanced footnote extraction
+                        footnotes_content = self._extract_footnotes_safely(content)
                             
+                        if footnotes_content is not None:
                             # Parse individual footnote objects
                             footnote_objects = []
-                            footnote_pattern = r'\{"id":\s*(\d+),\s*"source":\s*"([^"]*)",\s*"title":\s*"([^"]*)",\s*"url":\s*"[^"]*'
+                            # Updated pattern to capture both complete and truncated URLs
+                            footnote_pattern = r'\{"id":\s*(\d+),\s*"source":\s*"([^"]*)",\s*"title":\s*"([^"]*)",\s*"url":\s*"([^"]*?)(?:"|$|\n)'
                             
                             for match in re.finditer(footnote_pattern, footnotes_content):
                                 footnote_id = match.group(1)
                                 source = match.group(2) 
                                 title = match.group(3)
+                                partial_url = match.group(4) if len(match.groups()) >= 4 else ""
                                 
-                                # Create fixed URL based on source
-                                if source.lower() == "google":
-                                    fixed_url = f"https://google.com/search?q={title.replace(' ', '+')}"
-                                else:
-                                    fixed_url = f"https://reddit.com/r/pricing/placeholder{footnote_id}"
+                                # Use enhanced URL recovery strategy
+                                fixed_url = self._recover_url_with_strategies(footnote_id, source, title, raw_content)
                                     
                                 footnote_objects.append(f'{{"id": {footnote_id}, "source": "{source}", "title": "{title}", "url": "{fixed_url}"}}')
                             
@@ -950,6 +1421,8 @@ RETURN VALID JSON WITH QUANTIFIED PRICING INTELLIGENCE:"""
                                 footnotes_pattern = r'"footnotes":\s*\[[^\]]*\]'
                                 content = re.sub(footnotes_pattern, fixed_footnotes, content, flags=re.DOTALL)
                                 logger.info(f"✅ PROACTIVE FIX: Fixed {len(footnote_objects)} footnotes (including {len(missing_ids)} missing) with URL truncation fix")
+                        else:
+                            logger.warning("❌ Could not extract footnotes content for URL fixing - skipping URL fix")
                     except Exception as e:
                         logger.warning(f"⚠️ Proactive URL fix failed: {e}")
             
@@ -960,7 +1433,7 @@ RETURN VALID JSON WITH QUANTIFIED PRICING INTELLIGENCE:"""
                 raise ValueError(f"Content became too short after cleaning: {len(content)} characters")
 
             # Save enhanced raw output for debugging  
-            output_dir = "/Users/Dollar/Documents/ULTRATHINK-AI-PRO/output"
+            output_dir = "output"
             os.makedirs(output_dir, exist_ok=True)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             with open(f"{output_dir}/last_gpt_raw_{timestamp}.txt", "w", encoding="utf-8") as f:
@@ -1007,19 +1480,18 @@ RETURN VALID JSON WITH QUANTIFIED PRICING INTELLIGENCE:"""
                 # IMMEDIATE URL truncation fix - apply before any other recovery
                 logger.info("🔧 JSON parsing failed, applying immediate URL truncation fix...")
                 
-                # Check for URL truncation patterns
-                pattern5 = bool(re.search(r'"url":\s*"https?:\n', content))
-                if pattern5:
+                # Check for URL truncation patterns using improved detection
+                url_truncation_detected = self._detect_url_truncation(content)
+                if url_truncation_detected:
                     logger.info(f"✅ URL truncation detected, applying fix...")
                     
                     # Apply direct URL fix while preserving source mapping
                     fixed_content = content
                     if '"footnotes": [' in fixed_content:
                         try:
-                            # Extract footnotes section
-                            footnotes_match = re.search(r'"footnotes":\s*\[(.*?)\]', fixed_content, re.DOTALL)
-                            if footnotes_match:
-                                footnotes_content = footnotes_match.group(1)
+                            # Extract footnotes using enhanced method
+                            footnotes_content = self._extract_footnotes_safely(fixed_content)
+                            if footnotes_content:
                                 
                                 # Parse individual footnote objects
                                 footnote_objects = []
@@ -1030,11 +1502,8 @@ RETURN VALID JSON WITH QUANTIFIED PRICING INTELLIGENCE:"""
                                     source = match.group(2) 
                                     title = match.group(3)
                                     
-                                    # Create fixed URL based on source
-                                    if source.lower() == "google":
-                                        fixed_url = f"https://google.com/search?q={title.replace(' ', '+')}"
-                                    else:
-                                        fixed_url = f"https://reddit.com/r/pricing/placeholder{footnote_id}"
+                                    # Use enhanced URL recovery (fallback mode)
+                                    fixed_url = self._generate_fallback_url(source, title, footnote_id)
                                         
                                     footnote_objects.append(f'{{"id": {footnote_id}, "source": "{source}", "title": "{title}", "url": "{fixed_url}"}}')
                                 
@@ -1079,31 +1548,8 @@ RETURN VALID JSON WITH QUANTIFIED PRICING INTELLIGENCE:"""
                 recovered = False
                 
                 # Strategy 0: Fix URL truncation and control character issues  
-                # Detect URLs that are truncated to just "https:" (incomplete URLs)
-                pattern1 = bool(re.search(r'"url":\s*"https?:\s*[^a-z/"]', content))
-                pattern2 = bool(re.search(r'"url":\s*"https?:\s*$', content, re.MULTILINE))
-                pattern3 = bool(re.search(r'"url":\s*"https?:$', content))
-                pattern4 = bool(re.search(r'"url":\s*"https?:\s*\n', content))  # URL followed by newline with missing quote
-                pattern5 = bool(re.search(r'"url":\s*"https?:\n', content))    # URL ends with https: then newline
-                url_truncated = pattern1 or pattern2 or pattern3 or pattern4 or pattern5
-                
-                # Debug logging
-                logger.info(f"🔍 URL truncation patterns: P1={pattern1}, P2={pattern2}, P3={pattern3}, P4={pattern4}, P5={pattern5}")
-                if pattern1:
-                    matches = re.findall(r'"url":\s*"https?:\s*[^a-z/"]', content)
-                    logger.info(f"🔍 Pattern 1 matches: {matches}")
-                if pattern2:
-                    matches = re.findall(r'"url":\s*"https?:\s*$', content, re.MULTILINE)
-                    logger.info(f"🔍 Pattern 2 matches: {matches}")
-                if pattern3:
-                    matches = re.findall(r'"url":\s*"https?:$', content)
-                    logger.info(f"🔍 Pattern 3 matches: {matches}")
-                if pattern4:
-                    matches = re.findall(r'"url":\s*"https?:\s*\n', content)
-                    logger.info(f"🔍 Pattern 4 matches: {matches}")
-                if pattern5:
-                    matches = re.findall(r'"url":\s*"https?:\n', content)
-                    logger.info(f"🔍 Pattern 5 matches: {matches}")
+                # Use centralized URL truncation detection
+                url_truncated = self._detect_url_truncation(content)
                 
                 if "Invalid control character" in str(json_err) or url_truncated:
                     try:
@@ -1126,10 +1572,9 @@ RETURN VALID JSON WITH QUANTIFIED PRICING INTELLIGENCE:"""
                             try:
                                 # Try to parse the current content to extract the existing footnotes structure
                                 
-                                # Extract just the footnotes array for analysis
-                                footnotes_match = re.search(r'"footnotes":\s*\[(.*?)\]', fixed_content, re.DOTALL)
-                                if footnotes_match:
-                                    footnotes_content = footnotes_match.group(1)
+                                # Extract footnotes using enhanced method
+                                footnotes_content = self._extract_footnotes_safely(fixed_content)
+                                if footnotes_content:
                                     logger.info(f"🔍 Extracted footnotes content for analysis")
                                     
                                     # Parse individual footnote objects to preserve titles and sources
@@ -1141,11 +1586,8 @@ RETURN VALID JSON WITH QUANTIFIED PRICING INTELLIGENCE:"""
                                         source = match.group(2) 
                                         title = match.group(3)
                                         
-                                        # Create fixed URL based on source
-                                        if source.lower() == "google":
-                                            fixed_url = f"https://google.com/search?q={title.replace(' ', '+')}"
-                                        else:
-                                            fixed_url = f"https://reddit.com/r/pricing/placeholder{footnote_id}"
+                                        # Use enhanced URL recovery (fallback mode since raw_content not available here)
+                                        fixed_url = self._generate_fallback_url(source, title, footnote_id)
                                             
                                         footnote_objects.append(f'{{"id": {footnote_id}, "source": "{source}", "title": "{title}", "url": "{fixed_url}"}}')
                                     
@@ -1165,15 +1607,28 @@ RETURN VALID JSON WITH QUANTIFIED PRICING INTELLIGENCE:"""
                                     raise Exception("Footnotes section not found")
                                     
                             except Exception as e:
-                                logger.warning(f"⚠️ Smart footnotes fix failed ({e}), using simple replacement")
-                                # Fallback to simple replacement
+                                logger.warning(f"⚠️ Smart footnotes fix failed ({e}), generating footnotes from enhanced items")
+                                # Generate footnotes from the actual source data
                                 footnotes_pattern = r'"footnotes":\s*\[[^\]]*\]'
-                                replacement_footnotes = '''"footnotes": [
-        {"id": 1, "source": "Reddit", "title": "Pricing Alert 1", "url": "https://reddit.com/r/pricing1"},
-        {"id": 2, "source": "Reddit", "title": "Pricing Alert 2", "url": "https://reddit.com/r/pricing2"},
-        {"id": 3, "source": "Reddit", "title": "Pricing Alert 3", "url": "https://reddit.com/r/pricing3"},
-        {"id": 4, "source": "Reddit", "title": "Pricing Alert 4", "url": "https://reddit.com/r/pricing4"},
-        {"id": 5, "source": "Reddit", "title": "Pricing Alert 5", "url": "https://reddit.com/r/pricing5"}
+                                
+                                # Use the enhanced items we stored during preprocessing
+                                if hasattr(self, '_enhanced_items') and self._enhanced_items:
+                                    footnote_entries = []
+                                    for idx, item in enumerate(self._enhanced_items[:10], 1):  # Limit to 10 footnotes
+                                        source = "Reddit" if "reddit" in item.get('url', '').lower() else "Google"
+                                        title = item.get('title', f'Pricing Intelligence {idx}')[:100]  # Limit title length
+                                        url = item.get('url', f'https://example.com/item{idx}')
+                                        footnote_entries.append(f'{{"id": {idx}, "source": "{source}", "title": "{title}", "url": "{url}"}}')
+                                    
+                                    separator = ',\n        '
+                                    replacement_footnotes = f'''"footnotes": [
+        {separator.join(footnote_entries)}
+      ]'''
+                                else:
+                                    # Last resort fallback
+                                    replacement_footnotes = '''"footnotes": [
+        {"id": 1, "source": "Reddit", "title": "Pricing Intelligence Report", "url": "https://reddit.com/r/sysadmin"},
+        {"id": 2, "source": "Google", "title": "Market Analysis", "url": "https://google.com/search?q=pricing"}
       ]'''
                                 if re.search(footnotes_pattern, fixed_content, re.DOTALL):
                                     fixed_content = re.sub(footnotes_pattern, replacement_footnotes, fixed_content, flags=re.DOTALL)
@@ -1256,7 +1711,7 @@ RETURN VALID JSON WITH QUANTIFIED PRICING INTELLIGENCE:"""
                             pass
                 
                 if not recovered:
-                    return self._generate_pricing_fallback_summary(roles)
+                    return self._generate_pricing_fallback_summary(roles, raw_content)
             
             # Validate structure
             logger.info("🔍 Starting validation...")
@@ -1265,7 +1720,7 @@ RETURN VALID JSON WITH QUANTIFIED PRICING INTELLIGENCE:"""
             logger.info(f"🔍 Validation result: {validation_result}")
             if not validation_result:
                 logger.error("Generated summary failed validation")
-                return self._generate_pricing_fallback_summary(roles)
+                return self._generate_pricing_fallback_summary(roles, raw_content)
             logger.info("✅ Validation successful!")
 
             # Add comprehensive analysis metadata with company intelligence

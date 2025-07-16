@@ -49,7 +49,7 @@ The ULTRATHINK-AI-PRO v3.1.0 Hybrid System is production-ready with all major fi
 ### 🏃‍♂️ Run the System
 
 ```bash
-cd /Users/Dollar/Documents/ULTRATHINK-AI-PRO
+cd ULTRATHINK-AI-PRO
 ./run_hybrid.sh
 ```
 
@@ -97,7 +97,7 @@ While the original [ultrathink-enhanced](https://github.com/dollarvora/ultrathin
 
 ### Comparison Table
 
-| Feature | Original (v1.0.1) | ULTRATHINK-AI-PRO (v3.0.0) |
+| Feature | Original (v1.0.1) | ULTRATHINK-AI-PRO (v3.1.0) |
 |---------|-------------------|----------------------------|
 | **Confidence Display** | Text-based ("High/Medium/Low") | Colored HTML badges with visual impact |
 | **Vendor Coverage** | 43 companies, 129 aliases | 64+ companies, 300+ aliases |
@@ -379,7 +379,7 @@ while also auditing perpetual licenses driving migration to Proxmox
 - **Concrete Examples System**: Real-world templates ("$50 → $76 core licensing = 50% increase")
 - **Debug Content Logging**: Full GPT input/output tracking for transparency
 
-### v3.0.0 - Major Enhancement
+### v3.1.0 - Professional Enhancement
 - Colored confidence badges with visual impact
 - 64+ vendor coverage with 300+ aliases
 - Zero fallback policy for authentic data
@@ -422,8 +422,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - OpenAI for GPT-4o-mini API powering intelligent analysis
 - Reddit communities for valuable pricing discussions
 - Original ultrathink-enhanced for the foundational architecture
-- Enterprise users for feedback driving v3.0.0 enhancements
+- Enterprise users for feedback driving v3.1.0 enhancements
 
 ---
 
-**ULTRATHINK-AI-PRO v3.0.0** - Professional Pricing Intelligence for Enterprise IT
+**ULTRATHINK-AI-PRO v3.1.0** - Professional Pricing Intelligence for Enterprise IT
