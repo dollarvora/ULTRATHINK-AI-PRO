@@ -138,68 +138,162 @@ class BaseFetcher(ABC):
         return [v.lower() for v in all_vendors]
 
     def _calculate_relevance_score(self, text: str) -> float:
-        """Enterprise-optimized relevance scoring with compiled regex patterns"""
-        score = 0.0
+        """Revenue Impact Scoring system for world-class pricing intelligence"""
+        return self._calculate_revenue_impact_score(text)
+    
+    def _calculate_revenue_impact_score(self, text: str) -> float:
+        """
+        Revenue Impact Scoring System:
+        - Immediate Revenue Impact (30%)
+        - Margin Opportunity (25%) 
+        - Competitive Advantage (20%)
+        - Strategic Value (15%)
+        - Urgency Factor (10%)
+        """
+        text_lower = text.lower()
         
         # Use compiled patterns for 10x performance improvement
         if hasattr(self, '_pricing_pattern') and self._pricing_pattern:
-            keyword_matches = self._pricing_pattern.findall(text) if self._pricing_pattern else []
-            keyword_score = len(keyword_matches) * self.config['scoring']['keyword_weight']
-            score += keyword_score
-
-            urgency_matches = self._urgency_pattern.findall(text) if self._urgency_pattern else []
-            urgency_score = len(urgency_matches) * self.config['scoring']['urgency_weight']
-            score += urgency_score
-
-            # Enhanced keyword categories with optimized regex matching
-            price_point_matches = self._price_point_pattern.findall(text) if self._price_point_pattern else []
-            price_point_score = len(price_point_matches) * 1.2  # High value for specific pricing
-
-            competitive_matches = self._competitive_pattern.findall(text) if self._competitive_pattern else []
-            competitive_score = len(competitive_matches) * 1.5  # Very high value for displacement
-
-            financial_matches = self._financial_pattern.findall(text) if self._financial_pattern else []
-            financial_score = len(financial_matches) * 1.0  # Standard weight for financial impact
-
-            industry_matches = self._industry_pattern.findall(text) if self._industry_pattern else []
-            industry_score = len(industry_matches) * 0.8  # Moderate weight for industry context
-
-            economic_matches = self._economic_pattern.findall(text) if self._economic_pattern else []
-            economic_score = len(economic_matches) * 1.0  # Standard weight for economic conditions
-
-            tech_trend_matches = self._tech_trend_pattern.findall(text) if self._tech_trend_pattern else []
-            tech_trend_score = len(tech_trend_matches) * 0.9  # High weight for emerging trends
-
-            # Add enhanced scores
-            enhanced_score = price_point_score + competitive_score + financial_score + industry_score + economic_score + tech_trend_score
-            score += enhanced_score
-
-            vendor_matches = self._vendor_pattern.findall(text) if self._vendor_pattern else []
-            vendor_score = len(vendor_matches) * self.config['scoring']['vendor_weight']
-            score += vendor_score
-
+            # Factor 1: Immediate Revenue Impact (30%)
+            immediate_revenue_score = self._calculate_immediate_revenue_impact(text, text_lower)
+            
+            # Factor 2: Margin Opportunity (25%)
+            margin_opportunity_score = self._calculate_margin_opportunity(text, text_lower)
+            
+            # Factor 3: Competitive Advantage (20%)
+            competitive_advantage_score = self._calculate_competitive_advantage(text, text_lower)
+            
+            # Factor 4: Strategic Value (15%)
+            strategic_value_score = self._calculate_strategic_value(text, text_lower)
+            
+            # Factor 5: Urgency Factor (10%)
+            urgency_factor_score = self._calculate_urgency_factor(text, text_lower)
+            
+            # Calculate weighted Revenue Impact Score
+            revenue_impact_score = (
+                immediate_revenue_score * 0.30 +
+                margin_opportunity_score * 0.25 +
+                competitive_advantage_score * 0.20 +
+                strategic_value_score * 0.15 +
+                urgency_factor_score * 0.10
+            )
+            
+            # Enhanced logging for high-scoring or business critical content
+            if revenue_impact_score >= 5.0 or any(term in text_lower for term in ['vcsp', 'program shutdown', 'partner program', 'thousands of partners']):
+                self.logger.info(f"🎯 REVENUE IMPACT SCORING - Text: '{text[:100]}...'")
+                self.logger.info(f"💰 Total Revenue Impact Score: {revenue_impact_score:.1f}")
+                self.logger.info(f"   📊 Immediate Revenue (30%): {immediate_revenue_score:.1f}")
+                self.logger.info(f"   📈 Margin Opportunity (25%): {margin_opportunity_score:.1f}")
+                self.logger.info(f"   ⚔️ Competitive Advantage (20%): {competitive_advantage_score:.1f}")
+                self.logger.info(f"   🎯 Strategic Value (15%): {strategic_value_score:.1f}")
+                self.logger.info(f"   🚨 Urgency Factor (10%): {urgency_factor_score:.1f}")
+            
+            return revenue_impact_score
         else:
             # Fallback to string matching if regex compilation failed
             return self._calculate_relevance_score_fallback(text)
 
-        # Enhanced logging for high-scoring or business critical content
-        if score >= 5.0 or any(term in text.lower() for term in ['vcsp', 'program shutdown', 'partner program', 'thousands of partners']):
-            self.logger.info(f"🎯 ENTERPRISE SCORING - Text: '{text[:100]}...'")
-            self.logger.info(f"📊 Total Score: {score:.1f} (Base: {keyword_score:.1f}, Urgency: {urgency_score:.1f}, Enhanced: {enhanced_score:.1f}, Vendors: {vendor_score:.1f})")
-            if keyword_matches:
-                self.logger.info(f"✅ Keyword Matches: {len(keyword_matches)} terms")
-            if urgency_matches:
-                self.logger.info(f"🚨 Urgency Matches: {len(urgency_matches)} terms")
-            if price_point_matches:
-                self.logger.info(f"💰 Price Point Matches: {len(price_point_matches)} terms")
-            if competitive_matches:
-                self.logger.info(f"⚔️ Competitive Matches: {len(competitive_matches)} terms")
-            if financial_matches:
-                self.logger.info(f"💼 Financial Matches: {len(financial_matches)} terms")
-            if vendor_matches:
-                self.logger.info(f"🏢 Vendor Matches: {len(vendor_matches)} terms")
+    def _calculate_immediate_revenue_impact(self, text: str, text_lower: str) -> float:
+        """Factor 1: Immediate Revenue Impact (30%) - Direct pricing/sales opportunities"""
+        score = 0.0
+        
+        # Direct pricing opportunities
+        price_point_matches = self._price_point_pattern.findall(text) if self._price_point_pattern else []
+        score += len(price_point_matches) * 3.0  # High value for pricing opportunities
+        
+        # Sales opportunities
+        pricing_matches = self._pricing_pattern.findall(text) if self._pricing_pattern else []
+        score += len(pricing_matches) * 2.0  # Direct pricing discussions
+        
+        # Revenue-specific terms
+        revenue_indicators = ['revenue', 'sales', 'deal', 'contract', 'purchase', 'order', 'demand']
+        for indicator in revenue_indicators:
+            if indicator in text_lower:
+                score += 1.5
+        
+        return min(score, 10.0)  # Cap at 10
 
-        return score
+    def _calculate_margin_opportunity(self, text: str, text_lower: str) -> float:
+        """Factor 2: Margin Opportunity (25%) - Vendor shifts, cost optimization"""
+        score = 0.0
+        
+        # Competitive displacement opportunities
+        competitive_matches = self._competitive_pattern.findall(text) if self._competitive_pattern else []
+        score += len(competitive_matches) * 2.5  # High value for displacement
+        
+        # Cost optimization opportunities
+        financial_matches = self._financial_pattern.findall(text) if self._financial_pattern else []
+        score += len(financial_matches) * 1.5  # Financial optimization
+        
+        # Vendor relationship changes
+        vendor_matches = self._vendor_pattern.findall(text) if self._vendor_pattern else []
+        score += len(vendor_matches) * 1.0  # Vendor mentions
+        
+        # Margin-specific terms
+        margin_indicators = ['margin', 'profit', 'discount', 'rebate', 'commission', 'markup']
+        for indicator in margin_indicators:
+            if indicator in text_lower:
+                score += 2.0
+        
+        return min(score, 10.0)  # Cap at 10
+
+    def _calculate_competitive_advantage(self, text: str, text_lower: str) -> float:
+        """Factor 3: Competitive Advantage (20%) - Early mover benefits, market positioning"""
+        score = 0.0
+        
+        # Early market signals
+        tech_trend_matches = self._tech_trend_pattern.findall(text) if self._tech_trend_pattern else []
+        score += len(tech_trend_matches) * 2.0  # Technology trends
+        
+        # Competitive positioning
+        competitive_terms = ['competitive', 'market share', 'positioning', 'advantage', 'differentiation']
+        for term in competitive_terms:
+            if term in text_lower:
+                score += 1.5
+        
+        # Market timing indicators
+        timing_indicators = ['first', 'early', 'ahead', 'leading', 'pioneer', 'before']
+        for indicator in timing_indicators:
+            if indicator in text_lower:
+                score += 1.0
+        
+        return min(score, 10.0)  # Cap at 10
+
+    def _calculate_strategic_value(self, text: str, text_lower: str) -> float:
+        """Factor 4: Strategic Value (15%) - Long-term portfolio positioning"""
+        score = 0.0
+        
+        # Industry vertical alignment
+        industry_matches = self._industry_pattern.findall(text) if self._industry_pattern else []
+        score += len(industry_matches) * 1.5  # Industry relevance
+        
+        # Economic conditions impact
+        economic_matches = self._economic_pattern.findall(text) if self._economic_pattern else []
+        score += len(economic_matches) * 1.0  # Economic context
+        
+        # Strategic terms
+        strategic_terms = ['strategy', 'strategic', 'portfolio', 'roadmap', 'vision', 'future']
+        for term in strategic_terms:
+            if term in text_lower:
+                score += 1.0
+        
+        return min(score, 10.0)  # Cap at 10
+
+    def _calculate_urgency_factor(self, text: str, text_lower: str) -> float:
+        """Factor 5: Urgency Factor (10%) - Time-sensitive opportunities"""
+        score = 0.0
+        
+        # Urgency indicators
+        urgency_matches = self._urgency_pattern.findall(text) if self._urgency_pattern else []
+        score += len(urgency_matches) * 3.0  # High urgency value
+        
+        # Time-sensitive terms
+        time_sensitive = ['immediate', 'urgent', 'asap', 'deadline', 'expires', 'limited time']
+        for term in time_sensitive:
+            if term in text_lower:
+                score += 2.0
+        
+        return min(score, 10.0)  # Cap at 10
 
     def _calculate_relevance_score_fallback(self, text: str) -> float:
         """Fallback scoring method using string matching"""

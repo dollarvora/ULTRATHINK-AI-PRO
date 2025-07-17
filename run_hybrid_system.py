@@ -201,9 +201,11 @@ def load_config():
             "temperature": 0.2   # Original's proven setting
         },
         "employees": [
-            {"role": "pricing_analyst", "name": "Pricing Team", "email": "pricing@company.com"},
-            {"role": "procurement_manager", "name": "Procurement Team", "email": "procurement@company.com"},
-            {"role": "bi_strategy", "name": "BI Strategy Team", "email": "strategy@company.com"}
+            {"role": "pricing_strategy", "name": "Pricing Strategy Team", "email": "pricing@company.com"},
+            {"role": "vendor_relations", "name": "Vendor Relations Team", "email": "vendor@company.com"},
+            {"role": "inventory_procurement", "name": "Inventory & Procurement Team", "email": "procurement@company.com"},
+            {"role": "sales_enablement", "name": "Sales Enablement Team", "email": "sales@company.com"},
+            {"role": "revenue_operations", "name": "Revenue Operations Team", "email": "revops@company.com"}
         ]
     }
     return config

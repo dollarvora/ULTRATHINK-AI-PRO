@@ -216,20 +216,30 @@ class HybridGPTSummarizer:
         
         # Original role descriptions (proven to work)
         role_descriptions = {
-            "pricing_analyst": {
-                "title": "Pricing Analyst",
-                "focus": "SKU-level price movements, promotional windows, margin erosion risks",
-                "priorities": "Deal registration opportunities, special pricing windows, competitive pricing pressure, volume discounts"
+            "pricing_strategy": {
+                "title": "Pricing Strategy Analyst",
+                "focus": "Dynamic pricing opportunities, margin optimization, competitive pricing intelligence",
+                "priorities": "Price adjustments, promotional windows, competitive pressure, margin erosion risks"
             },
-            "procurement_manager": {
-                "title": "Procurement Manager", 
-                "focus": "Bulk purchase opportunities, contract negotiation leverage, supply constraints affecting pricing",
-                "priorities": "Volume pricing thresholds, contract terms, rebate programs, supply chain cost impacts"
+            "vendor_relations": {
+                "title": "Vendor Relationship Manager", 
+                "focus": "Vendor program changes, negotiation leverage, partnership opportunities",
+                "priorities": "Contract negotiations, rebate programs, vendor momentum, program disruptions"
             },
-            "bi_strategy": {
-                "title": "BI Strategy Analyst",
-                "focus": "Competitive pricing strategies, market consolidation impacts on pricing, vendor program changes",
-                "priorities": "Competitive positioning, vendor program changes, market share impacts on pricing power"
+            "inventory_procurement": {
+                "title": "Inventory & Procurement Specialist",
+                "focus": "Demand forecasting, stock optimization, supply chain impacts",
+                "priorities": "Inventory planning, supply constraints, demand spikes, fulfillment issues"
+            },
+            "sales_enablement": {
+                "title": "Sales Enablement Strategist",
+                "focus": "Market positioning, competitive intelligence, sales talking points",
+                "priorities": "Competitive positioning, market trends, sales opportunities, threat responses"
+            },
+            "revenue_operations": {
+                "title": "Revenue Operations Director",
+                "focus": "Cross-functional insights, strategic implications, executive briefings",
+                "priorities": "Revenue opportunities, strategic positioning, market disruptions, competitive advantages"
             }
         }
         
@@ -243,7 +253,7 @@ class HybridGPTSummarizer:
         role_object = "{\n" + ",\n".join(role_specs) + "\n  }"
         
         # Enhanced prompt positioning as world-class pricing intelligence provider
-        prompt = f"""You are a world-class pricing intelligence analyst for an IT solutions provider competing with Softchoice and CDW. Your insights drive multi-million dollar procurement decisions and competitive positioning strategies.
+        prompt = f"""You are a world-class revenue operations intelligence analyst for an IT solutions provider competing with Softchoice and CDW. Your insights drive multi-million dollar procurement decisions, pricing strategies, and competitive positioning for revenue operations teams.
 
 🏢 INDUSTRY CONTEXT:
 - We're an IT distributor/reseller focused on software, hardware, security, cloud
@@ -251,13 +261,21 @@ class HybridGPTSummarizer:
 - Key distributors: TD Synnex, Ingram Micro, CDW
 - Product categories: Security software, cloud services, networking gear, laptops/desktops
 
-📊 ANALYSIS REQUIREMENTS:
+📊 WORLD-CLASS INSIGHT FORMULA:
+Each insight must follow: [TREND DETECTION] + [SPECIFIC CONTEXT] + [BUSINESS IMPLICATION]
+
+**Language Patterns for Actionable Insights:**
+- Trend Detection: "adoption growing," "gaining traction," "shifting towards," "declining interest"
+- Specific Context: Market segments (SMBs, MSPs, enterprises), timeframes, quantities, specific products
+- Business Implication: "indicating pricing adjustments," "suggesting procurement shifts," "creating negotiation leverage"
+
+**Revenue Operations Focus:**
 - Focus exclusively on pricing signals, margin opportunities, and cost optimization intelligence
 - Every insight must have direct pricing or procurement impact - filter out general tech news
 - Use QUANTIFIED insights (percentages, dollar amounts, timeframes)
 - Detect pricing changes, supply issues, vendor behavior shifts affecting margins
 - Tag urgency: HIGH (immediate price/supply impacts), MEDIUM (notable changes), LOW (general updates)
-- Prioritize actionable intelligence over general market commentary
+- Connect technical trends to revenue opportunities and competitive positioning
 
 🎯 OUTPUT FORMAT:
 {{
@@ -266,55 +284,110 @@ class HybridGPTSummarizer:
   "total_items": 0
 }}
 
-📝 ROLE-SPECIFIC REQUIREMENTS:
+📝 REVENUE OPERATIONS SUBAGENTS:
 
-**Pricing Analyst**: Track SKU-level price movements, promotional windows, and margin erosion risks
-- Example: "🔴 Dell Precision workstations +15% via CDW effective immediately"
-- Example: "🟢 TD Synnex offering 12% Zscaler discount through Q3"
-- Focus: Deal registration opportunities, special pricing windows, competitive pricing pressure
+**Pricing Strategy Analyst**: Dynamic pricing opportunities, margin optimization, competitive pricing intelligence
+- Example: "🔴 Microsoft Defender adoption growing among SMBs, indicating potential 8-12% price increase window"
+- Example: "🟡 Lenovo servers gaining traction in MSPs due to better profit margins, suggesting portfolio shift opportunity"
+- Focus: Price adjustments, promotional windows, competitive pressure, margin erosion risks
 
-**Procurement Manager**: Identify bulk purchase opportunities, contract negotiation leverage, and supply constraints affecting pricing
-- Example: "🟡 Ingram Micro reports 3-week delays for Lenovo ThinkPads"
-- Example: "🟢 Microsoft introducing new Enterprise Agreement rebate structure"
-- Focus: Volume pricing thresholds, contract terms, rebate programs, supply chain cost impacts
+**Vendor Relationship Manager**: Vendor program changes, negotiation leverage, partnership opportunities
+- Example: "🔴 VMware partner program disruption creates immediate negotiation leverage with Broadcom"
+- Example: "🟢 Microsoft expanding channel incentives - recommend tier upgrade discussion"
+- Focus: Contract negotiations, rebate programs, vendor momentum, program disruptions
 
-**BI Strategy**: Analyze competitive pricing strategies, market consolidation impacts on pricing, and vendor program changes
-- Example: "🔴 Broadcom acquiring VMware - expect licensing model changes"
-- Example: "🟢 CDW expanding cybersecurity practice via new partnerships"
-- Focus: Competitive positioning, vendor program changes, market share impacts on pricing power
+**Inventory & Procurement Specialist**: Demand forecasting, stock optimization, supply chain impacts
+- Example: "🟡 Security software demand spike anticipated - recommend 40% inventory increase for Q4"
+- Example: "🔴 Lenovo ThinkPad supply constraints emerging - secure inventory before pricing increases"
+- Focus: Inventory planning, supply constraints, demand spikes, fulfillment issues
 
-🎯 FEW-SHOT EXAMPLES:
+**Sales Enablement Strategist**: Market positioning, competitive intelligence, sales talking points
+- Example: "🔴 Microsoft Teams malware threats create urgency messaging opportunity for security services"
+- Example: "🟢 Infrastructure automation interest growing - position managed services portfolio"
+- Focus: Competitive positioning, market trends, sales opportunities, threat responses
 
-Example 1 - Pricing Focus:
+**Revenue Operations Director**: Cross-functional insights, strategic implications, executive briefings
+- Example: "🟡 Market shift towards automation creates $2M revenue opportunity across service lines"
+- Example: "🔴 Vendor consolidation trend threatens 15% of current partnerships - strategic response needed"
+- Focus: Revenue opportunities, strategic positioning, market disruptions, competitive advantages
+
+🎯 WORLD-CLASS INSIGHT EXAMPLES:
+
+Example 1 - Revenue Operations Intelligence:
 {{
-  "pricing_analyst": {{
-    "role": "Pricing Analyst",
-    "focus": "Margin impacts and SKU-level pricing changes",
-    "summary": "Significant vendor price adjustments detected: Dell workstation pricing increased 15% through CDW, while TD Synnex is offering enhanced Zscaler discounts to compete.",
+  "pricing_strategy": {{
+    "role": "Pricing Strategy Analyst",
+    "focus": "Dynamic pricing opportunities and margin optimization",
+    "summary": "Microsoft Defender adoption accelerating in SMB market creating immediate pricing power, while Lenovo hardware momentum in MSP channel suggests strategic portfolio shift opportunity.",
     "key_insights": [
-      "🔴 Dell Precision 5000 series +15% price increase via CDW (effective 6/15)",
-      "🟢 TD Synnex Zscaler ZIA discount increased to 12% through Q3 2024",
-      "🟡 Microsoft 365 E5 pricing adjustment (+3%) announced for new contracts"
-    ],
-    "top_vendors": [
-      {{"vendor": "Dell", "mentions": 3, "highlighted": true}},
-      {{"vendor": "Zscaler", "mentions": 2, "highlighted": true}}
-    ],
-    "sources": {{"Reddit": 2, "Google News": 4, "LinkedIn": 1}}
+      "🔴 Microsoft Defender adoption growing among small businesses, indicating potential 8-12% price increase window through Q4",
+      "🟡 Lenovo servers gaining traction in MSPs due to better profit margins, suggesting portfolio shift opportunity worth $500K quarterly revenue"
+    ]
+  }},
+  "vendor_relations": {{
+    "role": "Vendor Relationship Manager",
+    "focus": "Vendor program changes and negotiation leverage",
+    "summary": "VMware partner program disruption creates immediate negotiation opportunities with Broadcom, while Microsoft channel incentive expansion offers tier upgrade potential.",
+    "key_insights": [
+      "🔴 VMware partner program shutdown affecting thousands of partners - immediate Broadcom negotiation leverage opportunity",
+      "🟢 Microsoft expanding Enterprise Agreement rebate structure - recommend tier upgrade discussion within 30 days"
+    ]
+  }},
+  "inventory_procurement": {{
+    "role": "Inventory & Procurement Specialist", 
+    "focus": "Demand forecasting and supply chain optimization",
+    "summary": "Security software demand surge anticipated based on threat landscape, while Lenovo supply constraints emerging ahead of typical seasonal patterns.",
+    "key_insights": [
+      "🟡 Security software demand spike anticipated - recommend 40% inventory increase for Microsoft Defender and CrowdStrike",
+      "🔴 Lenovo ThinkPad supply constraints emerging - secure 90-day inventory before 10-15% price increases"
+    ]
+  }},
+  "sales_enablement": {{
+    "role": "Sales Enablement Strategist",
+    "focus": "Market positioning and competitive intelligence",
+    "summary": "Microsoft Teams malware threats creating urgency messaging opportunities for security services, while infrastructure automation interest enables managed services positioning.",
+    "key_insights": [
+      "🔴 Microsoft Teams malware threats spreading - urgent security assessment services opportunity with premium pricing",
+      "🟢 Infrastructure automation interest growing among IT departments - position managed services portfolio for Q1 expansion"
+    ]
+  }},
+  "revenue_operations": {{
+    "role": "Revenue Operations Director",
+    "focus": "Strategic implications and cross-functional opportunities",
+    "summary": "Market automation trend creates multi-million dollar revenue opportunity across service lines, while vendor consolidation threatens existing partnerships requiring strategic response.",
+    "key_insights": [
+      "🟡 Market shift towards automation creates $2M revenue opportunity across managed services and consulting practices",
+      "🔴 Vendor consolidation trend threatens 15% of current partnerships - strategic diversification needed within 60 days"
+    ]
   }}
 }}
 
-💡 URGENCY DETECTION:
-- HIGH: Price increases >10%, supply shortages, security breaches, M&A announcements
-- MEDIUM: Price changes <10%, new partnerships, product launches, discount programs  
-- LOW: General updates, blog posts, minor announcements
+💡 WORLD-CLASS INSIGHT GENERATION REQUIREMENTS:
+
+**Apply the Formula to Every Insight:**
+1. **Trend Detection**: Use action words like "adoption growing," "gaining traction," "shifting towards"
+2. **Specific Context**: Include market segment (SMBs, MSPs, enterprises), quantities, timeframes
+3. **Business Implication**: Connect to revenue impact with phrases like "indicating pricing adjustments," "suggesting procurement shifts," "creating negotiation leverage"
+
+**Revenue Operations Focus:**
+- Connect technical trends to immediate revenue opportunities
+- Include specific dollar amounts, percentages, timeframes when possible
+- Identify competitive advantages and market positioning opportunities  
+- Highlight vendor relationship impacts and negotiation leverage points
+- Suggest specific actions for pricing, procurement, and sales teams
+
+**Urgency Classification:**
+- 🔴 HIGH: Immediate pricing/supply impacts, security threats, M&A disruptions, partner program changes
+- 🟡 MEDIUM: Emerging trends, new partnerships, product launches, discount programs
+- 🟢 LOW: General market updates, technology discussions, minor announcements
 
 ⚠️ CRITICAL RULES:
 1. Return ONLY valid JSON - no markdown, no explanations
-2. Use specific numbers/percentages when available
-3. Include vendor names from our key vendor list when relevant
-4. Prioritize recent content (last 24-48 hours) for urgency tagging
-5. Each role must have actionable insights relevant to their function
+2. Every insight must follow the [TREND] + [CONTEXT] + [IMPLICATION] formula
+3. Include specific numbers/percentages when available
+4. Connect all insights to revenue operations outcomes
+5. Focus on Softchoice/CDW competitive positioning
+6. Prioritize recent content (last 24-48 hours) for urgency tagging
 
 Now analyze this content and generate role-specific intelligence:
 
@@ -336,6 +409,34 @@ Now analyze this content and generate role-specific intelligence:
 - Market Focus: Enterprise IT procurement, distributor pricing, channel intelligence
 - Geographic Scope: North American IT reseller marketplace
 
+🎯 COMPETITIVE INTELLIGENCE FOCUS:
+**Competing Against Softchoice:**
+- Target Market: SMB/mid-market (5-500 employees)
+- Specialization: Managed services, cloud migration, Microsoft 365
+- Key Advantage: Personalized service, technical expertise
+- Revenue Model: Recurring managed services, professional services
+
+**Competing Against CDW:**
+- Target Market: Enterprise accounts, government contracts, large-scale deployments
+- Specialization: Enterprise infrastructure, data center solutions, government sector
+- Key Advantage: Scale, logistics, enterprise relationships
+- Revenue Model: Large hardware deals, enterprise software licensing
+
+**Competitive Positioning Strategy:**
+- Identify market gaps where Softchoice/CDW are vulnerable
+- Highlight vendor relationships and pricing advantages
+- Position unique value propositions for specific market segments
+- Track competitive wins/losses and market share shifts
+
+🎯 MARKET-TO-ACTION TRANSLATION ENGINE:
+Transform technical signals into specific business actions using the formula:
+**Technical Reality → Market Dynamic → Revenue Action**
+
+Examples:
+- **Microsoft Teams malware spreading** → Security gap created → **🔴 URGENT: Security services pricing opportunity - 48hr window for premium rates**
+- **Lenovo servers popular in MSP community** → Channel preference shift → **🟡 STRATEGIC: Negotiate Lenovo tier upgrade - MSP demand supports volume commitments**
+- **VMware partner program disruption** → Vendor relationship chaos → **🔴 IMMEDIATE: Broadcom negotiation leverage - thousands of partners need alternatives**
+
 🎯 HOLISTIC ANALYSIS FRAMEWORK:
 Generate unified pricing intelligence that covers:
 - VENDOR PRICING: Rate changes, margin shifts, competitive positioning
@@ -343,6 +444,7 @@ Generate unified pricing intelligence that covers:
 - STRATEGIC INTELLIGENCE: M&A activity, partnership changes, product lifecycle
 - PROCUREMENT INSIGHTS: Contract negotiations, volume discounts, fulfillment issues
 - COMPETITIVE LANDSCAPE: Pricing wars, market share shifts, new entrants
+- **ACTION RECOMMENDATIONS**: Specific next steps for pricing, procurement, and sales teams
 
 📊 COMPREHENSIVE OUTPUT STRUCTURE:
 {{
@@ -367,6 +469,22 @@ Generate unified pricing intelligence that covers:
     "strategic_recommendations": [
       "Actionable recommendations for pricing, procurement, and competitive strategy"
     ],
+    "automated_action_recommendations": [
+      {{
+        "priority": "🔴 URGENT/🟡 STRATEGIC/🟢 MONITORING",
+        "action_title": "Specific action required",
+        "technical_signal": "What technical reality was detected",
+        "market_dynamic": "What market change this represents", 
+        "revenue_action": "Specific business action to take",
+        "timeline": "When to act (24-48 hours, 1-2 weeks, etc.)",
+        "revenue_impact": "Potential financial impact ($XXK-$XXM)",
+        "next_steps": [
+          "Step 1: Immediate action required",
+          "Step 2: Strategic follow-up action",
+          "Step 3: Long-term positioning"
+        ]
+      }}
+    ],
     "market_intelligence": {{
       "trending_vendors": [
         {{"vendor": "Name", "mentions": 0, "sentiment": "Positive/Negative/Neutral", "key_topics": ["topic1", "topic2"]}}
@@ -387,6 +505,21 @@ Generate unified pricing intelligence that covers:
   }}
 }}
 
+🚨 COMPETITIVE INTELLIGENCE REQUIREMENTS:
+1. **Identify Softchoice Vulnerabilities**: Large enterprise deals, complex infrastructure, government contracts
+2. **Identify CDW Vulnerabilities**: SMB personalization, managed services, agile response
+3. **Competitive Positioning**: Position our advantages against their weaknesses
+4. **Market Opportunity Analysis**: Identify segments where we can outcompete
+5. **Pricing Strategy**: Identify pricing advantages and competitive pricing opportunities
+
+🚨 MARKET-TO-ACTION TRANSLATION REQUIREMENTS:
+1. For each significant market signal, provide automated action recommendations
+2. Transform technical realities into specific business actions
+3. Include concrete next steps with timelines and revenue impact estimates
+4. Use the priority system: 🔴 URGENT (24-48hr action), 🟡 STRATEGIC (1-2 weeks), 🟢 MONITORING (ongoing)
+5. Connect every action to revenue operations outcomes (pricing, procurement, sales)
+6. **Include competitive positioning against Softchoice/CDW for each major opportunity**
+
 🚨 ANALYSIS REQUIREMENTS:
 1. Extract REAL intelligence from the provided content - never fabricate data
 2. Cover ALL vendor categories: Hardware, Software, Cloud, Security, Networking
@@ -395,8 +528,9 @@ Generate unified pricing intelligence that covers:
 5. Include specific dollar amounts, percentages, and timeframes when available
 6. Highlight supply chain, competitive, and pricing risks
 7. Generate strategic recommendations based on detected patterns
-8. CRITICAL: Each insight MUST include [SOURCE_ID] reference to the source content that generated it
-9. Use the exact SOURCE_ID from the content (e.g., reddit_1, google_2) to enable footnote linking
+8. **Apply Market-to-Action Translation Engine for all significant insights**
+9. CRITICAL: Each insight MUST include [SOURCE_ID] reference to the source content that generated it
+10. Use the exact SOURCE_ID from the content (e.g., reddit_1, google_2) to enable footnote linking
 
 💡 INTELLIGENCE PRIORITIES:
 - Price increases/decreases with specific percentages and effective dates
