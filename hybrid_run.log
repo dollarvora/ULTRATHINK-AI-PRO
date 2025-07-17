@@ -1,0 +1,101 @@
+🚀 Starting ULTRATHINK Hybrid System (Option B Implementation)...
+🔧 Using proven original ultrathink logic with enhancements
+✅ Multi-role analysis  < /dev/null |  Higher token limits | No aggressive filtering
+
+🔧 Activating original ultrathink virtual environment...
+✅ Using proven working environment
+🎯 Loading environment variables from .env file...
+✅ OpenAI API Key: sk-proj-skEXQlzh05DJ...
+✅ Google API Key: AIzaSyCZIUQz4NZ6UVLD...
+✅ Reddit Client ID: zqA2dhiN38Vf9ECWM8pkUw
+✅ Environment loaded - Running ULTRATHINK Hybrid System...
+2025-07-16 11:23:05,415 - INFO - 🚀 ULTRATHINK Hybrid System
+2025-07-16 11:23:05,415 - INFO - ================================================================================
+2025-07-16 11:23:05,415 - INFO - 🔧 Working directory: /Users/Dollar/Documents/ULTRATHINK-AI-PRO
+2025-07-16 11:23:05,415 - INFO - 🌐 STEP 1: Fetching Pricing Intelligence
+2025-07-16 11:23:05,415 - INFO - -----------------------------------------------
+2025-07-16 11:23:05,586 - INFO - 🔴 Fetching pricing intelligence from Reddit...
+2025-07-16 11:23:05,586 - INFO - Fetching fresh data from reddit
+2025-07-16 11:23:05,586 - INFO - ✅ reddit API key validation passed
+2025-07-16 11:23:05,586 - INFO - ✅ Reddit credentials validated successfully
+2025-07-16 11:23:05,587 - INFO - Fetching from r/sysadmin via enhanced API
+2025-07-16 11:24:01,444 - INFO - ✅ Enhanced fetch for r/sysadmin: 44 posts
+2025-07-16 11:24:01,444 - INFO - Fetching from r/msp via enhanced API
+2025-07-16 11:26:33,347 - INFO - ✅ Enhanced fetch for r/msp: 14 posts
+2025-07-16 11:26:33,347 - INFO - Fetching from r/cybersecurity via enhanced API
+2025-07-16 11:28:46,008 - INFO - ✅ Enhanced fetch for r/cybersecurity: 24 posts
+2025-07-16 11:28:46,008 - INFO - Fetching from r/vmware via enhanced API
+2025-07-16 11:29:59,388 - ERROR - Error fetching from r/vmware: received 429 HTTP response
+2025-07-16 11:29:59,388 - INFO - Fetching from r/AZURE via enhanced API
+2025-07-16 11:29:59,444 - ERROR - Error fetching from r/AZURE: received 429 HTTP response
+2025-07-16 11:29:59,444 - INFO - Fetching from r/aws via enhanced API
+2025-07-16 11:29:59,489 - ERROR - Error fetching from r/aws: received 429 HTTP response
+2025-07-16 11:29:59,489 - INFO - Fetching from r/networking via enhanced API
+2025-07-16 11:29:59,557 - ERROR - Error fetching from r/networking: received 429 HTTP response
+2025-07-16 11:29:59,557 - INFO - Fetching from r/devops via enhanced API
+2025-07-16 11:29:59,605 - ERROR - Error fetching from r/devops: received 429 HTTP response
+2025-07-16 11:29:59,605 - INFO - Fetching from r/ITManagers via enhanced API
+2025-07-16 11:29:59,648 - ERROR - Error fetching from r/ITManagers: received 429 HTTP response
+2025-07-16 11:29:59,648 - INFO - Fetching from r/BusinessIntelligence via enhanced API
+2025-07-16 11:29:59,692 - ERROR - Error fetching from r/BusinessIntelligence: received 429 HTTP response
+2025-07-16 11:29:59,693 - INFO - Fetching from r/enterprise via enhanced API
+2025-07-16 11:29:59,733 - ERROR - Error fetching from r/enterprise: received 429 HTTP response
+2025-07-16 11:29:59,734 - INFO - Fetching from r/procurement via enhanced API
+2025-07-16 11:29:59,774 - ERROR - Error fetching from r/procurement: received 429 HTTP response
+2025-07-16 11:29:59,774 - INFO - Fetching from r/purchasing via enhanced API
+2025-07-16 11:29:59,814 - ERROR - Error fetching from r/purchasing: received 429 HTTP response
+2025-07-16 11:29:59,815 - INFO - Fetching from r/FinancialCareers via enhanced API
+2025-07-16 11:29:59,859 - ERROR - Error fetching from r/FinancialCareers: received 429 HTTP response
+2025-07-16 11:29:59,860 - INFO - Fetching from r/accounting via enhanced API
+2025-07-16 11:29:59,901 - ERROR - Error fetching from r/accounting: received 429 HTTP response
+2025-07-16 11:29:59,902 - INFO - Fetching from r/analytics via enhanced API
+2025-07-16 11:29:59,945 - ERROR - Error fetching from r/analytics: received 429 HTTP response
+2025-07-16 11:29:59,946 - INFO - Fetching from r/consulting via enhanced API
+2025-07-16 11:32:37,125 - INFO - ✅ Enhanced fetch for r/consulting: 11 posts
+2025-07-16 11:32:37,125 - INFO - Fetching from r/smallbusiness via enhanced API
+2025-07-16 11:35:01,969 - INFO - ✅ Enhanced fetch for r/smallbusiness: 50 posts
+2025-07-16 11:35:01,969 - INFO - Fetching from r/startups via enhanced API
+2025-07-16 11:37:38,653 - INFO - ✅ Enhanced fetch for r/startups: 22 posts
+2025-07-16 11:37:38,653 - INFO - ✅ Reddit enhanced API fetch: 165 collected
+2025-07-16 11:37:38,654 - INFO - Reddit total fetch: 165 collected → 164 unique
+2025-07-16 11:37:38,668 - INFO - Processed 79 relevant items from 164 total
+2025-07-16 11:37:38,671 - INFO - ✅ Reddit: 79 pricing-related posts
+2025-07-16 11:37:38,671 - INFO - 🔍 Fetching pricing intelligence from Google...
+2025-07-16 11:37:38,671 - INFO - Fetching fresh data from google
+2025-07-16 11:37:38,673 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-07-16 11:37:38,674 - INFO - Searching Google for: enterprise software pricing increase 2025
+2025-07-16 11:37:39,245 - INFO - Searching Google for: cybersecurity vendor price changes
+2025-07-16 11:37:39,727 - INFO - Searching Google for: IT distributor margin compression
+2025-07-16 11:37:40,023 - INFO - Searching Google for: cloud pricing updates AWS Azure
+2025-07-16 11:37:40,445 - INFO - Searching Google for: hardware vendor pricing announcements
+2025-07-16 11:37:44,379 - INFO - Google filtering: 85 → 53 → 53 items
+2025-07-16 11:37:44,382 - INFO - Processed 53 relevant items from 53 total
+2025-07-16 11:37:44,384 - INFO - ✅ Google: 53 pricing results
+2025-07-16 11:37:44,384 - INFO - 📊 Total pricing intelligence: 132 items
+2025-07-16 11:37:44,384 - INFO - 
+2025-07-16 11:37:44,384 - INFO - 🧠 STEP 2: Running Hybrid GPT-4 Analysis
+2025-07-16 11:37:44,384 - INFO - --------------------------------------------
+2025-07-16 11:37:44,384 - INFO - 🤖 Using hybrid summarizer with multi-role intelligence...
+2025-07-16 11:37:44,405 - INFO - ✅ Company Alias Matcher initialized with 43 companies
+2025-07-16 11:37:44,405 - INFO - 📊 Total aliases: 129
+2025-07-16 11:37:44,405 - INFO - ✅ Company alias matcher enabled
+2025-07-16 11:37:44,405 - INFO - Deduplicated reddit: 79 -> 79 items
+2025-07-16 11:37:44,405 - INFO - Deduplicated google: 53 -> 53 items
+2025-07-16 11:37:44,428 - INFO - Preprocessed 40 total items across 2 sources
+2025-07-16 11:37:44,428 - INFO - Using holistic team-wide pricing intelligence perspective
+2025-07-16 11:38:10,848 - INFO - ✅ Generated hybrid summary for 0 roles
+2025-07-16 11:38:10,848 - INFO - ✅ Holistic Analysis completed with comprehensive team perspective
+2025-07-16 11:38:10,849 - INFO - 📊 Generated 3 critical insights covering 5 vendors
+2025-07-16 11:38:10,849 - INFO - 
+2025-07-16 11:38:10,849 - INFO - 📄 STEP 3: Creating Enhanced Report
+2025-07-16 11:38:10,849 - INFO - ----------------------------------------
+2025-07-16 11:38:10,854 - INFO - ✅ Enhanced report saved: output/ultrathink_hybrid_20250716_113810.html
+2025-07-16 11:38:10,854 - INFO - 🎯 Generated report with 6 insights and 2 vendors
+2025-07-16 11:38:10,854 - INFO - 💾 Analysis data saved: output/hybrid_summary_20250716_113810.json
+2025-07-16 11:38:10,854 - INFO - 
+2025-07-16 11:38:10,854 - INFO - ✅ System completed successfully\!
+2025-07-16 11:38:10,854 - INFO - 📊 Report: output/ultrathink_hybrid_20250716_113810.html
+2025-07-16 11:38:10,854 - INFO - 💾 Data: output/hybrid_summary_20250716_113810.json
+✅ System completed! Check output folder for results.
+
+✅ System completed! Check output folder for results.

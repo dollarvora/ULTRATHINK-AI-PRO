@@ -63,6 +63,26 @@ class HybridGPTSummarizer:
             "Citrix", "Red Hat", "SUSE", "Canonical", "Docker"
         ]
         
+        # Vendor confidence tiers for confidence calculation
+        self.vendor_tiers = {
+            "tier_1": {  # High confidence vendors
+                "vendors": ["Microsoft", "VMware", "Cisco", "Dell", "HPE", "Oracle", "Broadcom", "Intel", "AWS", "Azure"],
+                "confidence_boost": 0.3
+            },
+            "tier_2": {  # Medium-high confidence vendors
+                "vendors": ["CrowdStrike", "Fortinet", "Palo Alto Networks", "Zscaler", "Splunk", "Google Cloud", "Salesforce", "NVIDIA"],
+                "confidence_boost": 0.2
+            },
+            "tier_3": {  # Medium confidence vendors
+                "vendors": ["TD Synnex", "Ingram Micro", "CDW", "Insight Global", "SHI", "Apple", "HP", "Lenovo"],
+                "confidence_boost": 0.1
+            },
+            "tier_4": {  # Lower confidence vendors
+                "vendors": ["Sophos", "Trend Micro", "McAfee", "Symantec", "Okta", "Duo", "Citrix", "Red Hat"],
+                "confidence_boost": 0.0
+            }
+        }
+        
         # Original urgency keywords (proven to work)
         self.urgency_keywords = {
             "high": [
@@ -123,8 +143,9 @@ class HybridGPTSummarizer:
                 continue
                 
             section_content = []
-            # Original's proven limit: 20 items per source (no aggressive filtering)
-            for item in items[:20]:
+            # Enhanced selection with engagement-based override
+            selected_items = self._select_items_with_engagement_override(items, 20)
+            for item in selected_items:
                 # Enhanced item processing with vendor detection
                 title = item.get('title', '')
                 content = item.get('content', item.get('text', ''))
@@ -197,18 +218,18 @@ class HybridGPTSummarizer:
         role_descriptions = {
             "pricing_analyst": {
                 "title": "Pricing Analyst",
-                "focus": "SKU-level margin impacts, vendor cost shifts, competitive pricing moves",
-                "priorities": "Price increases/decreases, vendor promotions, margin threats, discount trends, SKU discontinuations"
+                "focus": "SKU-level price movements, promotional windows, margin erosion risks",
+                "priorities": "Deal registration opportunities, special pricing windows, competitive pricing pressure, volume discounts"
             },
             "procurement_manager": {
                 "title": "Procurement Manager", 
-                "focus": "Supply chain risks, vendor incentives, fulfillment issues, contract changes",
-                "priorities": "Vendor behavior changes, supply shortages, rebate programs, terms modifications, distributor updates"
+                "focus": "Bulk purchase opportunities, contract negotiation leverage, supply constraints affecting pricing",
+                "priorities": "Volume pricing thresholds, contract terms, rebate programs, supply chain cost impacts"
             },
             "bi_strategy": {
                 "title": "BI Strategy Analyst",
-                "focus": "Market consolidation, competitive intelligence, vendor ecosystem shifts",
-                "priorities": "M&A activity, partnership changes, market trends, competitive positioning, industry disruption"
+                "focus": "Competitive pricing strategies, market consolidation impacts on pricing, vendor program changes",
+                "priorities": "Competitive positioning, vendor program changes, market share impacts on pricing power"
             }
         }
         
@@ -221,8 +242,8 @@ class HybridGPTSummarizer:
         
         role_object = "{\n" + ",\n".join(role_specs) + "\n  }"
         
-        # Original's proven prompt with enhanced vendor context
-        prompt = f"""You are a senior intelligence analyst for a leading North American IT solutions provider. Analyze vendor pricing intelligence for teams competing against CDW and Insight Global.
+        # Enhanced prompt positioning as world-class pricing intelligence provider
+        prompt = f"""You are a world-class pricing intelligence analyst for an IT solutions provider competing with Softchoice and CDW. Your insights drive multi-million dollar procurement decisions and competitive positioning strategies.
 
 🏢 INDUSTRY CONTEXT:
 - We're an IT distributor/reseller focused on software, hardware, security, cloud
@@ -231,10 +252,12 @@ class HybridGPTSummarizer:
 - Product categories: Security software, cloud services, networking gear, laptops/desktops
 
 📊 ANALYSIS REQUIREMENTS:
-- Focus on last 24-48 hours for urgency detection
+- Focus exclusively on pricing signals, margin opportunities, and cost optimization intelligence
+- Every insight must have direct pricing or procurement impact - filter out general tech news
 - Use QUANTIFIED insights (percentages, dollar amounts, timeframes)
-- Detect pricing changes, supply issues, vendor behavior shifts
+- Detect pricing changes, supply issues, vendor behavior shifts affecting margins
 - Tag urgency: HIGH (immediate price/supply impacts), MEDIUM (notable changes), LOW (general updates)
+- Prioritize actionable intelligence over general market commentary
 
 🎯 OUTPUT FORMAT:
 {{
@@ -245,17 +268,20 @@ class HybridGPTSummarizer:
 
 📝 ROLE-SPECIFIC REQUIREMENTS:
 
-**Pricing Analyst**: Focus on margin-impacting changes, SKU pricing, vendor discounts
+**Pricing Analyst**: Track SKU-level price movements, promotional windows, and margin erosion risks
 - Example: "🔴 Dell Precision workstations +15% via CDW effective immediately"
 - Example: "🟢 TD Synnex offering 12% Zscaler discount through Q3"
+- Focus: Deal registration opportunities, special pricing windows, competitive pricing pressure
 
-**Procurement Manager**: Focus on supply chain, vendor terms, fulfillment issues  
+**Procurement Manager**: Identify bulk purchase opportunities, contract negotiation leverage, and supply constraints affecting pricing
 - Example: "🟡 Ingram Micro reports 3-week delays for Lenovo ThinkPads"
 - Example: "🟢 Microsoft introducing new Enterprise Agreement rebate structure"
+- Focus: Volume pricing thresholds, contract terms, rebate programs, supply chain cost impacts
 
-**BI Strategy**: Focus on market moves, acquisitions, competitive shifts
+**BI Strategy**: Analyze competitive pricing strategies, market consolidation impacts on pricing, and vendor program changes
 - Example: "🔴 Broadcom acquiring VMware - expect licensing model changes"
 - Example: "🟢 CDW expanding cybersecurity practice via new partnerships"
+- Focus: Competitive positioning, vendor program changes, market share impacts on pricing power
 
 🎯 FEW-SHOT EXAMPLES:
 
@@ -302,7 +328,7 @@ Now analyze this content and generate role-specific intelligence:
         # Comprehensive vendor coverage
         all_vendors = ", ".join(self.key_vendors)
         
-        prompt = f"""You are the lead pricing intelligence analyst for a world-class IT distribution company. Your team provides comprehensive market intelligence across ALL vendors, manufacturers, and technology categories to support enterprise decision-making.
+        prompt = f"""You are the lead pricing intelligence analyst for a world-class IT solutions provider competing with Softchoice and CDW. Your team provides comprehensive market intelligence across ALL vendors, manufacturers, and technology categories to drive multi-million dollar procurement decisions and competitive positioning.
 
 🏢 COMPREHENSIVE VENDOR ECOSYSTEM:
 - Primary Vendors: {all_vendors}
@@ -446,6 +472,381 @@ CONTENT TO ANALYZE:
         
         return fallback
 
+    def _select_items_with_engagement_override(self, items, limit):
+        """Select items with engagement-based override for high-value content"""
+        if not items:
+            return []
+        
+        logger.info(f"🔍 SELECTION DEBUG: Processing {len(items)} items for content selection")
+        
+        # Priority 1: High engagement items (>50 upvotes OR >20 comments)
+        high_engagement = []
+        business_critical = []
+        high_relevance = []
+        regular_items = []
+        
+        for item in items:
+            score = item.get('score', 0)
+            num_comments = item.get('num_comments', 0)
+            relevance_score = item.get('relevance_score', 0)
+            title = item.get('title', '').lower()
+            content = item.get('content', item.get('text', '')).lower()
+            full_text = f"{title} {content}"
+            
+            # Enhanced business critical detection
+            is_business_critical = self._has_business_critical_keywords(full_text)
+            is_high_engagement = score > 50 or num_comments > 20
+            is_high_relevance = relevance_score >= 7.0
+            
+            # Debug logging for VCSP-like content
+            if 'vcsp' in full_text or 'program' in title or score > 100:
+                logger.info(f"🎯 HIGH-VALUE ITEM: '{title[:80]}...'")
+                logger.info(f"   📊 Scores - Reddit: {score}, Comments: {num_comments}, Relevance: {relevance_score}")
+                logger.info(f"   🔍 Flags - High Engagement: {is_high_engagement}, Business Critical: {is_business_critical}, High Relevance: {is_high_relevance}")
+            
+            # Priority categorization (items can be in multiple categories)
+            if is_high_engagement:
+                high_engagement.append(item)
+                logger.info(f"✅ HIGH ENGAGEMENT: '{title[:50]}...' (Score: {score}, Comments: {num_comments})")
+            
+            if is_business_critical:
+                business_critical.append(item)
+                logger.info(f"🚨 BUSINESS CRITICAL: '{title[:50]}...' (Keywords detected)")
+            
+            if is_high_relevance:
+                high_relevance.append(item)
+                logger.info(f"⭐ HIGH RELEVANCE: '{title[:50]}...' (Score: {relevance_score})")
+            
+            if not (is_high_engagement or is_business_critical or is_high_relevance):
+                regular_items.append(item)
+        
+        # Log category counts
+        logger.info(f"📋 CATEGORIZATION: High Engagement: {len(high_engagement)}, Business Critical: {len(business_critical)}, High Relevance: {len(high_relevance)}, Regular: {len(regular_items)}")
+        
+        # Priority selection with guaranteed slots
+        selected = []
+        
+        # Priority 1: High engagement items (up to 8 slots)
+        high_engagement.sort(key=lambda x: x.get('score', 0) + x.get('num_comments', 0), reverse=True)
+        priority_1 = high_engagement[:8]
+        selected.extend(priority_1)
+        logger.info(f"🥇 PRIORITY 1 (High Engagement): Selected {len(priority_1)}/8 items")
+        
+        # Priority 2: Business critical items not already selected (up to 6 slots)
+        remaining_slots = limit - len(selected)
+        if remaining_slots > 0:
+            business_critical_new = [item for item in business_critical if item not in selected]
+            business_critical_new.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
+            priority_2 = business_critical_new[:min(6, remaining_slots)]
+            selected.extend(priority_2)
+            logger.info(f"🥈 PRIORITY 2 (Business Critical): Selected {len(priority_2)}/6 items")
+        
+        # Priority 3: High relevance items not already selected (up to 4 slots)
+        remaining_slots = limit - len(selected)
+        if remaining_slots > 0:
+            high_relevance_new = [item for item in high_relevance if item not in selected]
+            high_relevance_new.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
+            priority_3 = high_relevance_new[:min(4, remaining_slots)]
+            selected.extend(priority_3)
+            logger.info(f"🥉 PRIORITY 3 (High Relevance): Selected {len(priority_3)}/4 items")
+        
+        # Priority 4: Fill remaining slots with best regular items
+        remaining_slots = limit - len(selected)
+        if remaining_slots > 0:
+            regular_new = [item for item in regular_items if item not in selected]
+            regular_new.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
+            priority_4 = regular_new[:remaining_slots]
+            selected.extend(priority_4)
+            logger.info(f"🏅 PRIORITY 4 (Regular): Selected {len(priority_4)}/{remaining_slots} items")
+        
+        final_selection = selected[:limit]
+        logger.info(f"🎯 FINAL SELECTION: {len(final_selection)} items selected for GPT analysis")
+        
+        # Log final selection for debugging
+        for i, item in enumerate(final_selection):
+            title = item.get('title', 'No title')[:60]
+            score = item.get('score', 0)
+            relevance = item.get('relevance_score', 0)
+            logger.info(f"   {i+1:2d}. '{title}...' (Reddit: {score}, Relevance: {relevance:.1f})")
+        
+        return final_selection
+    
+    def _has_business_critical_keywords(self, text):
+        """Check if text contains business critical keywords with enhanced detection"""
+        text_lower = text.lower()
+        
+        business_critical_keywords = [
+            'program shutdown', 'program closure', 'partner program', 'vcsp', 'vcp',
+            'channel program', 'reseller program', 'distributor program', 'var program',
+            'csp program', 'certification program', 'program discontinuation',
+            'migrate clients', 'migrate their clients', 'smoothly migrate',
+            'migrate to competition', 'migrate to competitors', 'client migration',
+            'business shutdown', 'shutdown business', 'asked to shutdown',
+            'program is closing', 'program closing', 'thousands of partners',
+            'hundreds of partners', 'all partners', 'entire channel',
+            'acquisition', 'merger', 'acquired', 'acquires', 'security breach',
+            'critical vulnerability', 'end of life', 'eol', 'discontinuation',
+            'program phase out', 'phasing out', 'sunsetting', 'program consolidation',
+            'licensing model change', 'subscription mandatory', 'perpetual license',
+            'broadcom', 'vmware by broadcom', 'licensing overhaul', 'forced migration'
+        ]
+        
+        matched_keywords = []
+        for keyword in business_critical_keywords:
+            if keyword.lower() in text_lower:
+                matched_keywords.append(keyword)
+        
+        # Enhanced logging for business critical detection
+        if matched_keywords:
+            logger.info(f"🚨 BUSINESS CRITICAL DETECTED: Matched keywords: {matched_keywords}")
+            return True
+        
+        # Additional pattern matching for edge cases
+        vmware_patterns = ['vmware.*broadcom', 'broadcom.*vmware', 'vmware.*program.*closing']
+        for pattern in vmware_patterns:
+            import re
+            if re.search(pattern, text_lower):
+                logger.info(f"🚨 BUSINESS CRITICAL PATTERN: Matched pattern '{pattern}'")
+                return True
+        
+        return False
+    
+    def _calculate_insight_confidence(self, insight_text: str, source_ids: List[str]) -> Dict[str, Any]:
+        """Calculate confidence level for insights based on multiple factors"""
+        
+        # Get confidence configuration or use defaults
+        confidence_config = self.config.get('confidence', {}) if self.config else {}
+        
+        # Base confidence from config or default to 0.5 (50%)
+        base_confidence = confidence_config.get('base_score', 0.5)
+        confidence_score = base_confidence
+        confidence_factors = []
+        
+        # Get thresholds from config or use defaults
+        thresholds = confidence_config.get('thresholds', {'high': 0.8, 'medium': 0.6})
+        vendor_config = confidence_config.get('vendor_tiers', {})
+        source_config = confidence_config.get('source_reliability', {})
+        data_config = confidence_config.get('data_quality', {})
+        
+        # Factor 1: Vendor tier confidence (0.0 to 0.3 boost)
+        vendor_boost = 0.0
+        detected_vendors = []
+        text_lower = insight_text.lower()
+        
+        for tier_name, tier_data in self.vendor_tiers.items():
+            for vendor in tier_data["vendors"]:
+                if vendor.lower() in text_lower:
+                    detected_vendors.append(vendor)
+                    # Use config-based boost or fallback to hardcoded
+                    if tier_name == "tier_1":
+                        boost = vendor_config.get('tier_1_boost', 0.3)
+                    elif tier_name == "tier_2":
+                        boost = vendor_config.get('tier_2_boost', 0.2)
+                    elif tier_name == "tier_3":
+                        boost = vendor_config.get('tier_3_boost', 0.1)
+                    else:
+                        boost = vendor_config.get('tier_4_boost', 0.0)
+                    vendor_boost = max(vendor_boost, boost)
+        
+        if vendor_boost > 0:
+            confidence_factors.append(f"Tier 1-3 vendor detected (+{vendor_boost:.1f})")
+            confidence_score += vendor_boost
+        
+        # Factor 2: Source reliability (0.0 to 0.2 boost)
+        source_boost = 0.0
+        reddit_sources = len([sid for sid in source_ids if 'reddit' in sid.lower()])
+        google_sources = len([sid for sid in source_ids if 'google' in sid.lower()])
+        
+        multiple_reddit_boost = source_config.get('multiple_reddit', 0.15)
+        single_reddit_boost = source_config.get('single_reddit', 0.1)
+        google_boost = source_config.get('google_verification', 0.05)
+        
+        if reddit_sources >= 2:  # Multiple Reddit sources
+            source_boost = multiple_reddit_boost
+            confidence_factors.append(f"Multiple Reddit sources (+{multiple_reddit_boost})")
+        elif reddit_sources >= 1:
+            source_boost = single_reddit_boost
+            confidence_factors.append(f"Reddit source (+{single_reddit_boost})")
+        
+        if google_sources >= 1:
+            source_boost += google_boost
+            confidence_factors.append(f"Google verification (+{google_boost})")
+        
+        confidence_score += source_boost
+        
+        # Factor 3: Quantified data presence (0.0 to 0.15 boost)
+        quantified_patterns = [
+            r'\d+%',  # Percentages
+            r'\$\d+',  # Dollar amounts
+            r'\d+\s*million',  # Millions
+            r'\d+\s*billion',  # Billions
+            r'increase.*\d+',  # Increases with numbers
+            r'decrease.*\d+',  # Decreases with numbers
+            r'\d+\s*days?',  # Days
+            r'\d+\s*weeks?',  # Weeks
+            r'\d+\s*months?'  # Months
+        ]
+        
+        import re
+        quantified_boost = 0.0
+        quantified_matches = []
+        
+        for pattern in quantified_patterns:
+            matches = re.findall(pattern, insight_text, re.IGNORECASE)
+            if matches:
+                quantified_matches.extend(matches[:2])  # Limit to prevent over-boost
+        
+        multiple_quantified_boost = data_config.get('multiple_quantified', 0.15)
+        single_quantified_boost = data_config.get('single_quantified', 0.1)
+        
+        if len(quantified_matches) >= 3:
+            quantified_boost = multiple_quantified_boost
+            confidence_factors.append(f"Multiple quantified data (+{multiple_quantified_boost})")
+        elif len(quantified_matches) >= 1:
+            quantified_boost = single_quantified_boost
+            confidence_factors.append(f"Quantified data present (+{single_quantified_boost})")
+        
+        confidence_score += quantified_boost
+        
+        # Factor 4: Business critical keywords (0.0 to 0.1 boost)
+        critical_keywords = [
+            'acquisition', 'merger', 'shutdown', 'discontinuation', 'end of life',
+            'price increase', 'security breach', 'recall', 'bankruptcy', 'lawsuit'
+        ]
+        
+        critical_boost = 0.0
+        critical_matches = []
+        for keyword in critical_keywords:
+            if keyword in text_lower:
+                critical_matches.append(keyword)
+        
+        multiple_critical_boost = data_config.get('critical_keywords_multiple', 0.1)
+        single_critical_boost = data_config.get('critical_keywords_single', 0.05)
+        
+        if len(critical_matches) >= 2:
+            critical_boost = multiple_critical_boost
+            confidence_factors.append(f"Multiple critical indicators (+{multiple_critical_boost})")
+        elif len(critical_matches) >= 1:
+            critical_boost = single_critical_boost
+            confidence_factors.append(f"Critical business indicator (+{single_critical_boost})")
+        
+        confidence_score += critical_boost
+        
+        # Cap confidence at 1.0 (100%)
+        confidence_score = min(confidence_score, 1.0)
+        
+        # Determine confidence level category using configured thresholds
+        high_threshold = thresholds.get('high', 0.8)
+        medium_threshold = thresholds.get('medium', 0.6)
+        
+        if confidence_score >= high_threshold:
+            confidence_level = "high"
+            confidence_color = "#28a745"  # Green
+        elif confidence_score >= medium_threshold:
+            confidence_level = "medium"
+            confidence_color = "#ffc107"  # Yellow
+        else:
+            confidence_level = "low"
+            confidence_color = "#6c757d"  # Gray
+        
+        return {
+            "confidence_score": round(confidence_score, 2),
+            "confidence_level": confidence_level,
+            "confidence_color": confidence_color,
+            "confidence_percentage": round(confidence_score * 100),
+            "confidence_factors": confidence_factors,
+            "detected_vendors": detected_vendors,
+            "quantified_data_points": len(quantified_matches),
+            "source_count": len(source_ids)
+        }
+    
+    def _add_confidence_to_insights(self, result: Dict[str, Any]) -> Dict[str, Any]:
+        """Add confidence calculations to all insights in the holistic summary"""
+        import re
+        
+        # Process insights in pricing_intelligence_summary
+        if "pricing_intelligence_summary" in result:
+            summary = result["pricing_intelligence_summary"]
+            
+            # Process critical_insights
+            if "critical_insights" in summary and isinstance(summary["critical_insights"], list):
+                enhanced_insights = []
+                for insight in summary["critical_insights"]:
+                    if isinstance(insight, str):
+                        # Extract source IDs from insight text
+                        source_ids = re.findall(r'\[([^]]+)\]', insight)
+                        
+                        # Calculate confidence
+                        confidence_data = self._calculate_insight_confidence(insight, source_ids)
+                        
+                        # Create enhanced insight object
+                        enhanced_insight = {
+                            "text": insight,
+                            "confidence": confidence_data,
+                            "source_ids": source_ids
+                        }
+                        enhanced_insights.append(enhanced_insight)
+                        
+                        if self.debug:
+                            logger.info(f"🎯 CONFIDENCE: '{insight[:60]}...' = {confidence_data['confidence_level']} ({confidence_data['confidence_percentage']}%)")
+                
+                summary["critical_insights"] = enhanced_insights
+            
+            # Process strategic_recommendations
+            if "strategic_recommendations" in summary and isinstance(summary["strategic_recommendations"], list):
+                enhanced_recommendations = []
+                for recommendation in summary["strategic_recommendations"]:
+                    if isinstance(recommendation, str):
+                        # Extract source IDs from recommendation text
+                        source_ids = re.findall(r'\[([^]]+)\]', recommendation)
+                        
+                        # Calculate confidence (recommendations typically have medium confidence)
+                        confidence_data = self._calculate_insight_confidence(recommendation, source_ids)
+                        
+                        # Adjust confidence for recommendations (slightly lower)
+                        confidence_data["confidence_score"] = max(0.4, confidence_data["confidence_score"] - 0.1)
+                        confidence_data["confidence_percentage"] = round(confidence_data["confidence_score"] * 100)
+                        
+                        if confidence_data["confidence_score"] >= 0.8:
+                            confidence_data["confidence_level"] = "high"
+                        elif confidence_data["confidence_score"] >= 0.6:
+                            confidence_data["confidence_level"] = "medium"
+                        else:
+                            confidence_data["confidence_level"] = "low"
+                        
+                        enhanced_recommendation = {
+                            "text": recommendation,
+                            "confidence": confidence_data,
+                            "source_ids": source_ids
+                        }
+                        enhanced_recommendations.append(enhanced_recommendation)
+                
+                summary["strategic_recommendations"] = enhanced_recommendations
+        
+        # Also process legacy role_summaries structure if present
+        if "role_summaries" in result:
+            for role_name, role_data in result["role_summaries"].items():
+                if "key_insights" in role_data and isinstance(role_data["key_insights"], list):
+                    enhanced_insights = []
+                    for insight in role_data["key_insights"]:
+                        if isinstance(insight, str):
+                            # Extract source IDs from insight text
+                            source_ids = re.findall(r'\[([^]]+)\]', insight)
+                            
+                            # Calculate confidence
+                            confidence_data = self._calculate_insight_confidence(insight, source_ids)
+                            
+                            enhanced_insight = {
+                                "text": insight,
+                                "confidence": confidence_data,
+                                "source_ids": source_ids
+                            }
+                            enhanced_insights.append(enhanced_insight)
+                    
+                    role_data["key_insights"] = enhanced_insights
+        
+        return result
+
     def _generate_fallback_summary(self):
         """Enhanced fallback with meaningful content"""
         logger.warning("Using enhanced fallback summary generation")
@@ -575,6 +976,9 @@ CONTENT TO ANALYZE:
                 logger.error("Generated summary failed validation")
                 return self._generate_holistic_fallback_summary()
 
+            # Add confidence calculations to insights
+            result = self._add_confidence_to_insights(result)
+            
             # Add enhanced analysis metadata
             result = self._add_analysis_metadata(result, content_by_source)
 

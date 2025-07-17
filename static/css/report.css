@@ -1,0 +1,373 @@
+/**
+ * ULTRATHINK-AI-PRO Report Styles
+ * Mobile-responsive, accessible CSS for pricing intelligence reports
+ * Version: 3.1.0
+ */
+
+/* Base styles */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    padding: 10px;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.email-preview {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.email-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+.email-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 2.5rem;
+}
+
+.email-content {
+    padding: 30px;
+}
+
+.analysis-section {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin: 30px 0;
+    border-radius: 8px;
+}
+
+.insight-item {
+    background: #f8f9fa;
+    border-left: 5px solid #667eea;
+    padding: 15px;
+    margin: 12px 0;
+    border-radius: 6px;
+    word-wrap: break-word;
+}
+
+.insight-alpha { 
+    border-left-color: #dc3545; 
+    background-color: #fdf2f2; 
+}
+
+.insight-beta { 
+    border-left-color: #ffc107; 
+    background-color: #fffdf2; 
+}
+
+.insight-gamma { 
+    border-left-color: #28a745; 
+    background-color: #f2fdf2; 
+}
+
+.vendor-badge {
+    background: #667eea;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    margin: 4px;
+    display: inline-block;
+    font-size: 0.9rem;
+}
+
+.source-section {
+    border: 1px solid #ccc;
+    margin: 15px 0;
+    border-radius: 8px;
+    background-color: white;
+}
+
+.source-header {
+    background-color: #f8f9fa;
+    padding: 15px;
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+}
+
+.source-content {
+    padding: 15px;
+}
+
+.content-item {
+    border: 1px solid #eee;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 6px;
+}
+
+.content-item h4 {
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+}
+
+.content-item a {
+    color: #667eea;
+    text-decoration: none;
+    word-wrap: break-word;
+}
+
+.content-item a:hover {
+    text-decoration: underline;
+}
+
+.performance-metrics {
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 6px;
+    margin: 20px 0;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+/* Accessibility improvements */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Focus styles for accessibility */
+a:focus, button:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* Vendor highlighting */
+.vendor-highlight {
+    background-color: #ffeb3b;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+/* Confidence badges */
+.confidence-badge {
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    margin-left: 8px;
+}
+
+.confidence-high {
+    background: #28a745;
+}
+
+.confidence-medium {
+    background: #ffc107;
+}
+
+.confidence-low {
+    background: #6c757d;
+}
+
+/* Priority indicators */
+.priority-high {
+    color: #dc3545;
+}
+
+.priority-medium {
+    color: #ffc107;
+}
+
+.priority-low {
+    color: #28a745;
+}
+
+/* Mobile-first responsive design */
+@media (max-width: 768px) {
+    body {
+        padding: 5px;
+    }
+    
+    .email-header {
+        padding: 20px 15px;
+    }
+    
+    .email-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .email-content {
+        padding: 20px 15px;
+    }
+    
+    .analysis-section {
+        margin: 20px 0;
+        padding: 15px;
+    }
+    
+    .insight-item {
+        padding: 12px;
+        margin: 10px 0;
+    }
+    
+    .vendor-badge {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        margin: 2px;
+    }
+    
+    .source-header, .source-content {
+        padding: 12px;
+    }
+    
+    .content-item {
+        padding: 8px;
+        margin: 8px 0;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .email-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .email-content {
+        padding: 15px 10px;
+    }
+    
+    .vendor-badge {
+        display: block;
+        margin: 4px 0;
+        text-align: center;
+    }
+}
+
+/* Print styles */
+@media print {
+    body {
+        background: white;
+        padding: 0;
+    }
+    
+    .email-preview {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+    
+    .email-header {
+        background: #667eea !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
+    
+    a {
+        color: #000 !important;
+        text-decoration: underline !important;
+    }
+    
+    .vendor-badge {
+        border: 1px solid #000;
+        background: #667eea !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
+    
+    /* Hide interactive elements in print */
+    button, input, select, textarea {
+        display: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .insight-item {
+        border: 2px solid;
+    }
+    
+    .vendor-badge {
+        border: 1px solid #000;
+    }
+    
+    .content-item {
+        border: 2px solid #ccc;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #1a1a1a;
+        color: #e0e0e0;
+    }
+    
+    .email-preview {
+        background-color: #2d2d2d;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    
+    .email-content {
+        background-color: #2d2d2d;
+    }
+    
+    .analysis-section {
+        background-color: #333;
+        border: 1px solid #555;
+    }
+    
+    .insight-item {
+        background: #3a3a3a;
+        color: #e0e0e0;
+    }
+    
+    .source-section {
+        background-color: #2d2d2d;
+        border: 1px solid #555;
+    }
+    
+    .source-header {
+        background-color: #404040;
+    }
+    
+    .content-item {
+        background-color: #3a3a3a;
+        border: 1px solid #555;
+    }
+    
+    .content-item a {
+        color: #8ab4f8;
+    }
+    
+    .performance-metrics {
+        background: #1e3a5f;
+    }
+}

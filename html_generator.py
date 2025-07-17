@@ -174,12 +174,18 @@ class EnhancedHTMLGenerator:
             grouped[source].append(item)
         return grouped
     
-    def _categorize_insights_by_priority(self, insights: List[str]) -> Dict[str, List[str]]:
+    def _categorize_insights_by_priority(self, insights: List) -> Dict[str, List]:
         """Categorize insights by priority keywords (URGENT → Alpha, MODERATE → Beta, INFO/MONITORING → Gamma)"""
         categorized = {'alpha': [], 'beta': [], 'gamma': []}
         
         for insight in insights:
-            insight_upper = insight.upper()
+            # Handle both string and enhanced object formats
+            if isinstance(insight, dict):
+                insight_text = insight.get('text', str(insight))
+            else:
+                insight_text = str(insight)
+                
+            insight_upper = insight_text.upper()
             if any(word in insight_upper for word in ['URGENT', 'CRITICAL', 'EMERGENCY', '🔴']):
                 categorized['alpha'].append(insight)
             elif any(word in insight_upper for word in ['MODERATE', 'NOTABLE', 'IMPORTANT', '🟡']):
@@ -305,16 +311,26 @@ class EnhancedHTMLGenerator:
             </section>
         """
     
-    def _generate_insights_page_content(self, insights: List[str], priority_type: str) -> str:
-        """Generate insights page content for specific priority with footnotes mapped to actual sources"""
+    def _generate_insights_page_content(self, insights: List, priority_type: str) -> str:
+        """Generate insights page content for specific priority with footnotes mapped to actual sources and confidence levels"""
         if not insights:
             return f'<p style="color: #333333; font-style: italic;">No {priority_type} priority insights for this analysis period.</p>'
         
         insights_html = []
         
         for insight in insights:
+            # Handle both string and enhanced object formats
+            if isinstance(insight, dict):
+                insight_text = insight.get('text', str(insight))
+                confidence_data = insight.get('confidence')
+                source_ids = insight.get('source_ids', [])
+            else:
+                insight_text = str(insight)
+                confidence_data = None
+                source_ids = []
+            
             # Clean up insight text and extract source ID
-            clean_insight = insight.replace('🔴', '').replace('🟡', '').replace('🟢', '').strip()
+            clean_insight = insight_text.replace('🔴', '').replace('🟡', '').replace('🟢', '').strip()
             
             # Parse SOURCE_ID from insight if present
             import re
@@ -338,6 +354,26 @@ class EnhancedHTMLGenerator:
             # Add footnote reference to each insight
             highlighted_insight = self._highlight_vendors(clean_insight)
             insight_with_footnote = f'{highlighted_insight} <a href="#footnote-{footnote_num}" class="footnote-link">[{footnote_num}]</a>'
+            
+            # Add confidence badge if confidence data is available
+            if confidence_data and confidence_data.get('confidence_level'):
+                confidence_level = confidence_data['confidence_level']
+                confidence_percentage = confidence_data.get('confidence_percentage', 0)
+                confidence_factors = confidence_data.get('confidence_factors', [])
+                
+                # Create tooltip text for confidence factors
+                tooltip_text = f"Confidence Level: {confidence_level.title()} ({confidence_percentage}%)\\n"
+                if confidence_factors:
+                    tooltip_text += "\\nFactors:\\n" + "\\n".join(f"• {factor}" for factor in confidence_factors[:3])
+                
+                confidence_badge = f'''<span class="confidence-badge confidence-{confidence_level}" 
+                    role="status" 
+                    aria-label="Confidence {confidence_level} {confidence_percentage} percent"
+                    title="{tooltip_text}"
+                    style="margin-left: 8px; cursor: help;">
+                    {confidence_percentage}%
+                </span>'''
+                insight_with_footnote += confidence_badge
             
             # Generate clean insight item with proper formatting and explicit background
             priority_backgrounds = {

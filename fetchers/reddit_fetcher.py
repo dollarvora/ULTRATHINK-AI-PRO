@@ -36,6 +36,7 @@ import asyncio
 import praw
 import hashlib
 import logging
+import time
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
@@ -134,10 +135,159 @@ class RedditFetcher(BaseFetcher):
         return True
 
     async def fetch_raw(self) -> List[Dict[str, Any]]:
-        """Fetch posts from configured subreddits"""
-        # Reddit API is synchronous, so run in executor
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, self._fetch_sync)
+        """Fetch posts from configured subreddits with concurrent processing"""
+        # Use concurrent processing for enterprise performance
+        return await self._fetch_concurrent()
+    
+    async def _fetch_concurrent(self) -> List[Dict[str, Any]]:
+        """Enhanced concurrent Reddit fetching for enterprise performance"""
+        import concurrent.futures
+        
+        all_posts = []
+        subreddits = self.source_config['subreddits']
+        
+        # Process subreddits in batches to avoid overwhelming Reddit API
+        batch_size = 5  # Concurrent subreddits per batch
+        batches = [subreddits[i:i + batch_size] for i in range(0, len(subreddits), batch_size)]
+        
+        self.logger.info(f"🚀 Starting concurrent fetch from {len(subreddits)} subreddits in {len(batches)} batches")
+        
+        # Process each batch concurrently
+        for batch_num, batch in enumerate(batches, 1):
+            self.logger.info(f"📦 Processing batch {batch_num}/{len(batches)}: {batch}")
+            
+            # Create tasks for concurrent execution
+            loop = asyncio.get_event_loop()
+            with concurrent.futures.ThreadPoolExecutor(max_workers=batch_size) as executor:
+                # Submit all subreddit fetches in the batch
+                tasks = [
+                    loop.run_in_executor(executor, self._fetch_subreddit_sync, subreddit_name)
+                    for subreddit_name in batch
+                ]
+                
+                # Wait for all tasks in the batch to complete
+                try:
+                    batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+                    
+                    # Process results and handle exceptions
+                    for subreddit_name, result in zip(batch, batch_results):
+                        if isinstance(result, Exception):
+                            self.logger.error(f"❌ Error fetching r/{subreddit_name}: {result}")
+                        else:
+                            all_posts.extend(result)
+                            self.logger.info(f"✅ r/{subreddit_name}: {len(result)} posts")
+                            
+                except Exception as e:
+                    self.logger.error(f"❌ Batch {batch_num} failed: {e}")
+            
+            # Rate limiting between batches to be respectful to Reddit API
+            if batch_num < len(batches):
+                self.logger.info(f"⏸️ Rate limiting: waiting 2 seconds before next batch...")
+                await asyncio.sleep(2)
+        
+        # Deduplicate posts across all subreddits
+        deduplicated = self._deduplicate_posts(all_posts)
+        
+        self.logger.info(f"🎯 Concurrent fetch complete: {len(all_posts)} collected → {len(deduplicated)} unique")
+        
+        # Fallback if insufficient data
+        if len(deduplicated) < 10:
+            self.logger.info("📊 Low data volume, activating snscrape fallback...")
+            try:
+                fallback_posts = self._fetch_via_snscrape_fallback()
+                all_posts.extend(fallback_posts)
+                deduplicated = self._deduplicate_posts(all_posts)
+                self.logger.info(f"✅ Snscrape fallback: {len(fallback_posts)} additional posts")
+            except Exception as e:
+                self.logger.error(f"❌ Snscrape fallback failed: {e}")
+        
+        return deduplicated
+
+    def _fetch_subreddit_sync(self, subreddit_name: str) -> List[Dict[str, Any]]:
+        """Fetch posts from a single subreddit (optimized for concurrent execution)"""
+        import time
+        
+        # Validate subreddit name if security is available
+        if self.input_validator:
+            if not self.input_validator.validate_subreddit_name(subreddit_name):
+                self.logger.warning(f"🔒 Invalid subreddit name skipped: {subreddit_name}")
+                return []
+        
+        try:
+            reddit = self._get_reddit_client()
+            subreddit = reddit.subreddit(subreddit_name)
+            subreddit_posts = []
+            
+            # Enhanced time windows
+            time_threshold_24h = datetime.now() - timedelta(hours=24)
+            
+            # Method 1: Hot posts (trending content)
+            try:
+                for submission in subreddit.hot(limit=self.source_config['post_limit']):
+                    if self._is_quality_post(submission):
+                        post_data = self._extract_post_data(submission)
+                        if post_data['created_at'] > time_threshold_24h:
+                            subreddit_posts.append(post_data)
+            except Exception as e:
+                self.logger.debug(f"Hot posts failed for r/{subreddit_name}: {e}")
+            
+            # Method 2: New posts (recent content)
+            try:
+                for submission in subreddit.new(limit=self.source_config['post_limit']):
+                    if self._is_quality_post(submission):
+                        post_data = self._extract_post_data(submission)
+                        if post_data['created_at'] > time_threshold_24h and \
+                           post_data['id'] not in [p['id'] for p in subreddit_posts]:
+                            subreddit_posts.append(post_data)
+            except Exception as e:
+                self.logger.debug(f"New posts failed for r/{subreddit_name}: {e}")
+            
+            # Method 3: Top posts from today (high-quality content)
+            try:
+                for submission in subreddit.top(time_filter='day', limit=self.source_config['post_limit']):
+                    if self._is_quality_post(submission):
+                        post_data = self._extract_post_data(submission)
+                        if post_data['created_at'] > time_threshold_24h and \
+                           post_data['id'] not in [p['id'] for p in subreddit_posts]:
+                            subreddit_posts.append(post_data)
+            except Exception as e:
+                self.logger.debug(f"Top posts failed for r/{subreddit_name}: {e}")
+            
+            # Method 4: Rising posts (emerging trends)
+            try:
+                for submission in subreddit.rising(limit=self.source_config['post_limit']):
+                    if self._is_quality_post(submission):
+                        post_data = self._extract_post_data(submission)
+                        if post_data['created_at'] > time_threshold_24h and \
+                           post_data['id'] not in [p['id'] for p in subreddit_posts]:
+                            subreddit_posts.append(post_data)
+            except Exception as e:
+                self.logger.debug(f"Rising posts failed for r/{subreddit_name}: {e}")
+            
+            # If insufficient recent content, extend search window
+            if len(subreddit_posts) < 5:
+                time_threshold_7d = datetime.now() - timedelta(days=7)
+                try:
+                    for submission in subreddit.top(time_filter='week', limit=self.source_config['post_limit'] * 2):
+                        if self._is_quality_post(submission):
+                            post_data = self._extract_post_data(submission)
+                            if post_data['created_at'] > time_threshold_7d and \
+                               post_data['id'] not in [p['id'] for p in subreddit_posts]:
+                                subreddit_posts.append(post_data)
+                except Exception as e:
+                    self.logger.debug(f"Extended search failed for r/{subreddit_name}: {e}")
+            
+            return subreddit_posts
+            
+        except Exception as e:
+            # Handle rate limiting gracefully
+            if "429" in str(e) or "rate limit" in str(e).lower():
+                self.logger.warning(f"🔄 Rate limited for r/{subreddit_name}, backing off...")
+                time.sleep(5)  # Brief backoff for this thread
+                return []
+            else:
+                self.logger.error(f"❌ Error fetching r/{subreddit_name}: {e}")
+                return []
 
     def _fetch_sync(self) -> List[Dict[str, Any]]:
         """Synchronous fetch method for Reddit using enhanced PRAW API approach with snscrape fallback"""
@@ -277,8 +427,86 @@ class RedditFetcher(BaseFetcher):
                 self.logger.info(f"✅ Enhanced fetch for r/{subreddit_name}: {len(subreddit_posts)} posts")
 
             except Exception as e:
-                self.logger.error(f"Error fetching from r/{subreddit_name}: {e}")
-                continue
+                # Handle rate limiting with retry logic
+                if "received 429 HTTP response" in str(e) or "429" in str(e):
+                    self.logger.warning(f"🔄 Rate limit hit for r/{subreddit_name}, waiting 10 minutes before retry...")
+                    time.sleep(600)  # Wait 10 minutes for rate limit reset
+                    
+                    # Retry once after waiting
+                    try:
+                        self.logger.info(f"🔄 Retrying r/{subreddit_name} after rate limit wait...")
+                        subreddit = reddit.subreddit(subreddit_name)
+                        subreddit_posts = []
+
+                        # Method 1: Hot posts (trending content)
+                        for submission in subreddit.hot(limit=self.source_config['post_limit']):
+                            if self._is_quality_post(submission):
+                                post_data = self._extract_post_data(submission)
+                                if post_data['created_at'] > time_threshold_24h:
+                                    subreddit_posts.append(post_data)
+
+                        # Method 2: New posts (recent content)
+                        for submission in subreddit.new(limit=self.source_config['post_limit']):
+                            if self._is_quality_post(submission):
+                                post_data = self._extract_post_data(submission)
+                                if post_data['created_at'] > time_threshold_24h and \
+                                   post_data['id'] not in [p['id'] for p in subreddit_posts]:
+                                    subreddit_posts.append(post_data)
+
+                        # Method 3: Top posts from today (high-quality content)
+                        try:
+                            for submission in subreddit.top(time_filter='day', limit=self.source_config['post_limit']):
+                                if self._is_quality_post(submission):
+                                    post_data = self._extract_post_data(submission)
+                                    if post_data['created_at'] > time_threshold_24h and \
+                                       post_data['id'] not in [p['id'] for p in subreddit_posts]:
+                                        subreddit_posts.append(post_data)
+                        except:
+                            pass  # Some subreddits might not support top posts
+
+                        # Method 4: Rising posts (emerging trends)
+                        try:
+                            for submission in subreddit.rising(limit=self.source_config['post_limit']):
+                                if self._is_quality_post(submission):
+                                    post_data = self._extract_post_data(submission)
+                                    if post_data['created_at'] > time_threshold_24h and \
+                                       post_data['id'] not in [p['id'] for p in subreddit_posts]:
+                                        subreddit_posts.append(post_data)
+                        except:
+                            pass  # Some subreddits might not support rising posts
+
+                        # Smart fallback: If insufficient 24h data, extend to 7 days with top posts
+                        if len(subreddit_posts) < 5:
+                            self.logger.info(f"⚠️ Only {len(subreddit_posts)} posts in 24h for r/{subreddit_name}, extending to 7 days...")
+                            
+                            # Get top posts from past week
+                            try:
+                                for submission in subreddit.top(time_filter='week', limit=self.source_config['post_limit'] * 2):
+                                    if self._is_quality_post(submission):
+                                        post_data = self._extract_post_data(submission)
+                                        if post_data['created_at'] > time_threshold_7d and \
+                                           post_data['id'] not in [p['id'] for p in subreddit_posts]:
+                                            subreddit_posts.append(post_data)
+                            except:
+                                pass
+
+                            # Get recent posts from past week
+                            for submission in subreddit.new(limit=self.source_config['post_limit'] * 3):
+                                if self._is_quality_post(submission):
+                                    post_data = self._extract_post_data(submission)
+                                    if post_data['created_at'] > time_threshold_7d and \
+                                       post_data['id'] not in [p['id'] for p in subreddit_posts]:
+                                        subreddit_posts.append(post_data)
+                        
+                        all_posts.extend(subreddit_posts)
+                        self.logger.info(f"✅ Enhanced fetch for r/{subreddit_name}: {len(subreddit_posts)} posts (after retry)")
+
+                    except Exception as retry_error:
+                        self.logger.error(f"❌ Retry failed for r/{subreddit_name}: {retry_error}")
+                        continue
+                else:
+                    self.logger.error(f"Error fetching from r/{subreddit_name}: {e}")
+                    continue
 
         return all_posts
     

@@ -35,9 +35,18 @@ def load_config():
                     # Original core subreddits (proven)
                     "sysadmin", "msp", "cybersecurity", "vmware", "AZURE", "aws", 
                     "networking", "devops", "ITManagers", "BusinessIntelligence", "enterprise",
-                    # Enhanced additions (valuable)
-                    "procurement", "purchasing", "FinancialCareers", "accounting", 
-                    "analytics", "consulting", "smallbusiness", "startups"
+                    # Enhanced additions (valuable for enterprise IT)
+                    "procurement", "purchasing", "accounting", 
+                    "analytics", "consulting", "startups",
+                    # Enterprise intelligence expansion (Tier 1: Critical)
+                    "SaaS", "cto", "CloudComputing", "ITdept",
+                    # Enterprise intelligence expansion (Tier 2: High Value)
+                    "netsec", "Sales", "Business", "ecommerce",
+                    # Enterprise intelligence expansion (Tier 3: Strategic - Enterprise focused)
+                    "GovernmentContracting", "HigherEducation", "Manufacturing",
+                    # NEW: Enterprise pricing-focused subreddits
+                    "k12sysadmin", "Office365", "DataHoarder", "Intune", "HyperV",
+                    "MicrosoftTeams", "SCCM", "PowerBI", "sharepoint"
                 ],
                 "post_limit": 50,
                 "comment_limit": 20
@@ -58,11 +67,85 @@ def load_config():
         "keywords": {
             "pricing": [
                 "price", "pricing", "cost", "margin", "discount", "rebate", "promotion",
-                "increase", "decrease", "surcharge", "fee", "subscription", "licensing"
+                "increase", "decrease", "surcharge", "fee", "subscription", "licensing",
+                # Additional pricing intelligence terms
+                "deal registration", "special pricing", "bid pricing", "competency discount",
+                "tier pricing", "authorization level", "channel conflict", "price protection",
+                "margin erosion", "promotional window", "volume threshold", "contract pricing"
             ],
             "urgency_indicators": [
                 "urgent", "critical", "immediate", "emergency", "breaking",
-                "acquisition", "merger", "bankruptcy", "lawsuit", "security breach"
+                "acquisition", "merger", "bankruptcy", "lawsuit", "security breach",
+                # Enhanced business critical keywords for vendor program changes
+                "program shutdown", "program closure", "partner program", "vcsp", "vcp",
+                "channel program", "reseller program", "distributor program", "var program",
+                "csp program", "certification program", "program discontinuation",
+                "migrate clients", "migrate their clients", "smoothly migrate",
+                "migrate to competition", "migrate to competitors", "client migration",
+                "business shutdown", "shutdown business", "asked to shutdown",
+                "program is closing", "program closing", "thousands of partners",
+                "hundreds of partners", "all partners", "entire channel",
+                "discontinuation", "end of life", "eol", "sunsetting",
+                "broadcom", "vmware by broadcom", "licensing overhaul", "forced migration"
+            ],
+            # Enterprise intelligence categories for 10/10 system
+            "price_point_intelligence": [
+                "$100K+", "$50K+", "$25K+", "$10K+", "six figures", "seven figures",
+                "enterprise tier", "premium tier", "professional tier", "business tier",
+                "volume threshold", "volume breakpoint", "tier pricing", "seat pricing",
+                "per user pricing", "per device pricing", "consumption pricing", "usage billing",
+                "minimum commitment", "annual commitment", "multi-year deal", "contract value",
+                "deal size", "transaction size", "enterprise discount", "volume discount",
+                "bulk pricing", "quantity discount", "scale pricing", "negotiated rate"
+            ],
+            "competitive_displacement": [
+                "switching from", "migrating from", "replacing", "migration project",
+                "vendor switch", "platform migration", "alternative to", "replacement for",
+                "moving away from", "leaving", "ditching", "abandoning", "phasing out",
+                "competitive win", "competitive loss", "lost deal", "won deal", "market share",
+                "displacing", "gaining ground", "losing customers", "customer retention",
+                "churn", "retention rate", "competitive pressure", "market position",
+                "vendor consolidation", "single vendor", "multi-vendor", "best of breed",
+                "integrated solution", "point solution", "rip and replace", "forklift upgrade"
+            ],
+            "financial_impact": [
+                "budget", "capex", "opex", "TCO", "total cost of ownership", "ROI",
+                "return on investment", "payback period", "cost benefit", "business case",
+                "budget allocation", "budget constraint", "cost center", "profit center",
+                "financial impact", "bottom line", "cost savings", "cost avoidance",
+                "efficiency gains", "productivity improvement", "resource optimization",
+                "budget freeze", "spending freeze", "cost cutting", "expense reduction",
+                "financial planning", "budget planning", "procurement budget", "IT budget",
+                "capital expenditure", "operating expense", "cash flow", "working capital"
+            ],
+            "industry_verticals": [
+                "healthcare IT", "health systems", "hospital technology", "medical devices",
+                "financial services", "banking technology", "fintech", "insurance tech",
+                "manufacturing ERP", "industrial automation", "supply chain technology",
+                "retail technology", "point of sale", "e-commerce platform", "omnichannel",
+                "government technology", "public sector", "federal", "state and local",
+                "education technology", "edtech", "student information system", "LMS",
+                "energy technology", "utilities", "smart grid", "renewable energy",
+                "telecommunications", "telecom infrastructure", "5G", "network equipment",
+                "transportation", "logistics technology", "fleet management", "autonomous"
+            ],
+            "economic_conditions": [
+                "recession", "economic downturn", "budget cuts", "cost reduction",
+                "inflation impact", "supply chain", "chip shortage", "component shortage",
+                "economic uncertainty", "market volatility", "interest rates", "inflation",
+                "cost of capital", "financing", "credit", "cash flow", "liquidity",
+                "economic recovery", "growth", "expansion", "investment", "stimulus",
+                "market conditions", "business climate", "economic outlook", "forecast"
+            ],
+            "technology_trends": [
+                "AI pricing", "artificial intelligence", "machine learning costs", "ML pricing",
+                "cloud migration", "cloud costs", "cloud pricing", "AWS pricing", "Azure pricing",
+                "SaaS pricing", "subscription model", "per-seat pricing", "usage-based",
+                "hybrid cloud", "multi-cloud", "cloud-native", "microservices", "containers",
+                "cybersecurity pricing", "security as a service", "managed security",
+                "automation pricing", "RPA pricing", "workflow automation", "process automation",
+                "data analytics pricing", "big data", "business intelligence", "data lake",
+                "IoT pricing", "edge computing", "5G pricing", "network modernization"
             ]
         },
         "vendors": {
@@ -78,6 +161,30 @@ def load_config():
             "vendor_weight": 1.5,
             "high_score_threshold": 5.0,
             "medium_score_threshold": 2.0
+        },
+        "confidence": {
+            "thresholds": {
+                "high": 0.8,     # 80% confidence threshold
+                "medium": 0.6    # 60% confidence threshold
+            },
+            "base_score": 0.5,   # 50% base confidence
+            "vendor_tiers": {
+                "tier_1_boost": 0.3,  # Major vendors (Microsoft, VMware, etc.)
+                "tier_2_boost": 0.2,  # Established vendors (CrowdStrike, Fortinet, etc.)
+                "tier_3_boost": 0.1,  # Distributors and hardware (CDW, Dell, etc.)
+                "tier_4_boost": 0.0   # Emerging/niche vendors
+            },
+            "source_reliability": {
+                "multiple_reddit": 0.15,
+                "single_reddit": 0.1,
+                "google_verification": 0.05
+            },
+            "data_quality": {
+                "multiple_quantified": 0.15,
+                "single_quantified": 0.1,
+                "critical_keywords_multiple": 0.1,
+                "critical_keywords_single": 0.05
+            }
         },
         "system": {
             "cache_ttl_hours": 6
@@ -197,17 +304,35 @@ async def generate_report(summary: Dict[str, Any], all_content: Dict[str, Any], 
     try:
         from html_generator import get_html_generator
         
-        # Extract insights for HTML generation (holistic structure)
+        # Extract insights for HTML generation (holistic structure with confidence data preserved)
         insights = []
         if 'pricing_intelligence_summary' in summary:
-            # New holistic structure
+            # New holistic structure - preserve confidence data
             intel_summary = summary['pricing_intelligence_summary']
-            insights.extend(intel_summary.get('critical_insights', []))
-            insights.extend(intel_summary.get('strategic_recommendations', []))
+            critical_insights = intel_summary.get('critical_insights', [])
+            strategic_recommendations = intel_summary.get('strategic_recommendations', [])
+            
+            # Handle both string and enhanced object formats
+            for insight in critical_insights:
+                if isinstance(insight, dict) and 'text' in insight:
+                    insights.append(insight)  # Enhanced object with confidence
+                else:
+                    insights.append({'text': str(insight), 'confidence': None})  # Fallback
+            
+            for recommendation in strategic_recommendations:
+                if isinstance(recommendation, dict) and 'text' in recommendation:
+                    insights.append(recommendation)  # Enhanced object with confidence
+                else:
+                    insights.append({'text': str(recommendation), 'confidence': None})  # Fallback
         else:
             # Fallback to old role structure
             for role_data in summary.get('role_summaries', {}).values():
-                insights.extend(role_data.get('key_insights', []))
+                role_insights = role_data.get('key_insights', [])
+                for insight in role_insights:
+                    if isinstance(insight, dict) and 'text' in insight:
+                        insights.append(insight)  # Enhanced object with confidence
+                    else:
+                        insights.append({'text': str(insight), 'confidence': None})  # Fallback
         
         # Generate vendor analysis (holistic structure)
         vendor_analysis = {}

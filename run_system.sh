@@ -2,8 +2,8 @@
 
 echo "🚀 Starting ULTRATHINK Enhanced System..."
 
-# Navigate to the correct directory
-cd /Users/Dollar/Documents/ultrathink-enhanced
+# Stay in current directory (ULTRATHINK-AI-PRO)
+# cd /Users/Dollar/Documents/ultrathink-enhanced
 
 # Use the working virtual environment from ultrathink
 echo "🔧 Using working virtual environment from ultrathink..."

@@ -1,25 +1,41 @@
 {
   "vendors": {
     "hardware": [
-      "Dell", "HPE", "Hewlett Packard Enterprise", "HP", "Cisco", "Lenovo", 
-      "IBM", "Intel", "AMD", "NVIDIA", "NetApp", "Pure Storage", "EMC"
+      "Dell", "Dell Technologies", "HPE", "Hewlett Packard Enterprise", "HP", 
+      "Cisco", "Cisco Systems", "Lenovo", "IBM", "Intel", "AMD", "NVIDIA", 
+      "NetApp", "Pure Storage", "EMC", "Juniper", "Arista", "Supermicro",
+      "PowerEdge", "ProLiant", "ThinkPad", "IdeaPad", "Catalyst", "Nexus",
+      "UCS", "FlexPod", "VxRail", "Unity", "Isilon", "PowerMax"
     ],
     "software": [
       "Microsoft", "Oracle", "SAP", "VMware", "Adobe", "Salesforce", 
-      "ServiceNow", "Atlassian", "JetBrains", "Slack", "Zoom", "Teams"
+      "ServiceNow", "Atlassian", "JetBrains", "Slack", "Zoom", "Teams",
+      "Citrix", "Workday", "DocuSign", "Box", "Dropbox", "Tableau", "Splunk",
+      "Office365", "O365", "M365", "SharePoint", "Dynamics365", "vSphere",
+      "vCenter", "ESXi", "NSX", "Creative Cloud", "Acrobat", "Workspace One",
+      "Horizon", "XenApp", "XenDesktop", "Jira", "Confluence", "Bitbucket"
     ],
     "security": [
-      "CrowdStrike", "Fortinet", "Palo Alto Networks", "Check Point", 
-      "Zscaler", "SentinelOne", "Proofpoint", "Symantec", "McAfee", 
-      "Trend Micro", "FireEye", "Splunk"
+      "CrowdStrike", "Fortinet", "Palo Alto Networks", "Check Point", "Zscaler", 
+      "SentinelOne", "Proofpoint", "Symantec", "McAfee", "Trend Micro", 
+      "FireEye", "Mandiant", "Okta", "Ping Identity", "CyberArk", "Tenable",
+      "Rapid7", "Qualys", "Varonis", "Darktrace", "Carbon Black", "Sophos",
+      "Falcon", "FortiGate", "FortiAnalyzer", "FortiSandbox", "Prisma", "Cortex", 
+      "Umbrella", "Duo", "AnyConnect", "ZPA", "ZIA", "Singularity", "Email Protection",
+      "Deep Security", "Cloud One", "Endpoint Protection", "SandBlast", "Harmony"
     ],
     "cloud": [
       "Amazon", "AWS", "Microsoft Azure", "Azure", "Google Cloud", "GCP", 
-      "IBM Cloud", "Oracle Cloud", "Alibaba Cloud", "DigitalOcean"
+      "IBM Cloud", "Oracle Cloud", "Alibaba Cloud", "DigitalOcean",
+      "Rackspace", "Vultr", "Linode", "Heroku", "Vercel", "Netlify",
+      "EC2", "S3", "Lambda", "RDS", "BigQuery", "Cloud Storage",
+      "Compute Engine", "App Engine", "Cloud Functions", "EKS", "AKS", "GKE"
     ],
     "distributors": [
-      "TD Synnex", "Ingram Micro", "CDW", "Insight Global", "SHI", 
-      "Arrow Electronics", "Avnet", "Tech Data", "Softchoice", "Computacenter"
+      "TD Synnex", "Tech Data", "Synnex", "Ingram Micro", "CDW", "CDW Corporation",
+      "Insight Global", "Insight Enterprises", "SHI", "SHI International",
+      "Arrow Electronics", "Avnet", "Softchoice", "Computacenter", "Zones",
+      "Connection", "PCM", "En Pointe", "Presidio", "Carahsoft", "CDWG"
     ]
   },
   "pricing_keywords": [
@@ -27,35 +43,288 @@
     "discount", "promotion", "deal", "sale", "rebate", "incentive",
     "margin", "markup", "pricing strategy", "cost reduction",
     "licensing change", "subscription model", "pricing tier",
-    "volume discount", "enterprise pricing", "SMB pricing"
+    "volume discount", "enterprise pricing", "SMB pricing",
+    "contract renewal", "renegotiation", "procurement", "budget",
+    "cost optimization", "vendor discount", "channel pricing",
+    "list price", "street price", "competitive pricing", "pricing pressure",
+    "margin compression", "price elasticity", "cost structure",
+    "perpetual license", "subscription pricing", "usage-based pricing",
+    "tiered pricing", "freemium", "enterprise agreement", "EA pricing",
+    "CSP", "MPE", "SYNNEX", "Ingram", "CDW", "Insight", 
+    "deal registration", "OEM", "price erosion", "cost recovery", 
+    "FX impact", "discount tiers", "mid-tier vendor", "cost+", 
+    "rebate clawback", "volume band", "tier adjustment", "reseller"
+  ],
+  "price_point_intelligence": [
+    "$100K+", "$50K+", "$25K+", "$10K+", "six figures", "seven figures",
+    "enterprise tier", "premium tier", "professional tier", "business tier",
+    "volume threshold", "volume breakpoint", "tier pricing", "seat pricing",
+    "per user pricing", "per device pricing", "consumption pricing", "usage billing",
+    "minimum commitment", "annual commitment", "multi-year deal", "contract value",
+    "deal size", "transaction size", "enterprise discount", "volume discount",
+    "bulk pricing", "quantity discount", "scale pricing", "negotiated rate"
+  ],
+  "competitive_displacement": [
+    "switching from", "migrating from", "replacing", "migration project",
+    "vendor switch", "platform migration", "alternative to", "replacement for",
+    "moving away from", "leaving", "ditching", "abandoning", "phasing out",
+    "competitive win", "competitive loss", "lost deal", "won deal", "market share",
+    "displacing", "gaining ground", "losing customers", "customer retention",
+    "churn", "retention rate", "competitive pressure", "market position",
+    "vendor consolidation", "single vendor", "multi-vendor", "best of breed",
+    "integrated solution", "point solution", "rip and replace", "forklift upgrade"
+  ],
+  "financial_impact": [
+    "budget", "capex", "opex", "TCO", "total cost of ownership", "ROI",
+    "return on investment", "payback period", "cost benefit", "business case",
+    "budget allocation", "budget constraint", "cost center", "profit center",
+    "financial impact", "bottom line", "cost savings", "cost avoidance",
+    "efficiency gains", "productivity improvement", "resource optimization",
+    "budget freeze", "spending freeze", "cost cutting", "expense reduction",
+    "financial planning", "budget planning", "procurement budget", "IT budget",
+    "capital expenditure", "operating expense", "cash flow", "working capital"
+  ],
+  "industry_verticals": [
+    "healthcare IT", "health systems", "hospital technology", "medical devices",
+    "financial services", "banking technology", "fintech", "insurance tech",
+    "manufacturing ERP", "industrial automation", "supply chain technology",
+    "retail technology", "point of sale", "e-commerce platform", "omnichannel",
+    "government technology", "public sector", "federal", "state and local",
+    "education technology", "edtech", "student information system", "LMS",
+    "energy technology", "utilities", "smart grid", "renewable energy",
+    "telecommunications", "telecom infrastructure", "5G", "network equipment",
+    "transportation", "logistics technology", "fleet management", "autonomous"
+  ],
+  "economic_conditions": [
+    "recession", "economic downturn", "budget cuts", "cost reduction",
+    "inflation impact", "supply chain", "chip shortage", "component shortage",
+    "economic uncertainty", "market volatility", "interest rates", "inflation",
+    "cost of capital", "financing", "credit", "cash flow", "liquidity",
+    "economic recovery", "growth", "expansion", "investment", "stimulus",
+    "market conditions", "business climate", "economic outlook", "forecast"
+  ],
+  "technology_trends": [
+    "AI pricing", "artificial intelligence", "machine learning costs", "ML pricing",
+    "cloud migration", "cloud costs", "cloud pricing", "AWS pricing", "Azure pricing",
+    "SaaS pricing", "subscription model", "per-seat pricing", "usage-based",
+    "hybrid cloud", "multi-cloud", "cloud-native", "microservices", "containers",
+    "cybersecurity pricing", "security as a service", "managed security",
+    "automation pricing", "RPA pricing", "workflow automation", "process automation",
+    "data analytics pricing", "big data", "business intelligence", "data lake",
+    "IoT pricing", "edge computing", "5G pricing", "network modernization"
   ],
   "urgency_high": [
-    "urgent", "critical", "immediate", "breaking", "emergency",
-    "acquisition", "merger", "security breach", "vulnerability",
-    "end of life", "EOL", "discontinuation", "recall",
-    "lawsuit", "compliance", "regulatory", "audit"
+    "urgent", "critical", "immediate", "breaking", "emergency", 
+    "acquisition", "merger", "security breach", "vulnerability", 
+    "end of life", "EOL", "discontinuation", "recall", "lawsuit",
+    "compliance", "regulatory", "audit", "zero-day", "exploit",
+    "data breach", "ransomware", "supply shortage", "chip shortage",
+    "licensing deadline", "contract expiration", "price deadline",
+    "limited time", "exclusive offer", "flash sale", "vendor lock-in",
+    "channel conflict", "margin compression", "bankruptcy",
+    "shutdown", "termination", "cancelled", "program closure", 
+    "program shutdown", "program termination", "vcsp", "vcp",
+    "var program", "csp program", "partner program shutdown",
+    "channel program end", "reseller program terminated", 
+    "migration deadline", "forced migration", "mandatory migration",
+    "certification expires", "certification discontinued", 
+    "license model change", "licensing overhaul", "subscription mandatory",
+    "end of support", "end of sales", "last order date", "final orders",
+    "all partners", "all resellers", "all distributors", "global program",
+    "thousands of partners", "hundreds of partners", "entire channel",
+    "program overhaul", "business model change", "go-to-market change",
+    "channel strategy shift", "partner model restructure", "program consolidation",
+    "asked to shutdown", "migrate their clients", "smoothly migrate",
+    "program is closing", "partner program closing", "channel program closing",
+    "program discontinuation", "partner program discontinuation",
+    "migrate to competition", "migrate to competitors", "client migration",
+    "business shutdown", "shutdown business", "close business",
+    "program phase out", "phasing out program", "sunsetting program",
+    "oct 2025", "october 2025", "deadline approaching", "program deadline",
+    "certification program shutdown", "training program shutdown",
+    "enablement program shutdown", "competency program shutdown",
+    "accreditation program shutdown", "qualification program shutdown"
   ],
   "urgency_medium": [
-    "update", "upgrade", "new release", "feature", "enhancement",
-    "partnership", "integration", "expansion", "growth",
-    "quarterly results", "earnings", "forecast", "outlook",
-    "roadmap", "strategy", "initiative", "program"
+    "update", "upgrade", "new release", "feature", "enhancement", 
+    "partnership", "integration", "expansion", "growth", 
+    "quarterly results", "earnings", "forecast", "outlook", 
+    "roadmap", "strategy", "initiative", "program",
+    "product launch", "beta release", "preview", "announcement",
+    "rebate program", "channel program", "training", "certification",
+    "webinar", "conference", "trade show", "summit",
+    "program changes", "partner program update", "channel update",
+    "certification program", "training program", "enablement program",
+    "partner portal", "reseller portal", "distributor portal",
+    "tier changes", "tier adjustments", "tier requirements",
+    "program requirements", "new program", "program launch",
+    "incentive program", "spiff program", "co-op program",
+    "mdf program", "marketing development fund", "channel marketing",
+    "partner benefits", "program benefits", "new benefits",
+    "many partners", "multiple partners", "several partners",
+    "regional program", "select partners", "key partners",
+    "major partners", "tier 1 partners", "enterprise partners",
+    "significant portion", "substantial impact", "considerable change",
+    "widespread", "broad impact", "numerous", "extensive"
   ],
   "urgency_low": [
-    "maintenance", "patch", "bugfix", "optimization", "performance",
-    "documentation", "training", "certification", "webinar",
-    "conference", "event", "announcement", "newsletter"
+    "maintenance", "patch", "bugfix", "optimization", "performance", 
+    "documentation", "training", "certification", "webinar", 
+    "conference", "event", "announcement", "newsletter",
+    "general availability", "stable release", "minor update",
+    "cosmetic changes", "UI improvements", "user experience"
   ],
   "competitive_intelligence": [
     "competitor", "competition", "market share", "industry report",
     "analyst report", "benchmark", "comparison", "alternative",
     "migration", "replacement", "switch", "evaluation",
-    "RFP", "RFQ", "tender", "procurement", "vendor selection"
+    "RFP", "RFQ", "tender", "procurement", "vendor selection",
+    "competitive analysis", "market positioning", "differentiation",
+    "value proposition", "feature comparison", "cost comparison",
+    "vendor assessment", "due diligence", "proof of concept", "POC",
+    "pilot program", "trial", "evaluation criteria", "decision matrix",
+    "Gartner", "Forrester", "IDC", "Magic Quadrant", "Wave report"
   ],
   "business_impact": [
     "revenue", "profit", "margin", "ROI", "cost savings",
     "efficiency", "productivity", "scalability", "growth",
     "market opportunity", "customer satisfaction", "retention",
-    "acquisition", "churn", "LTV", "customer lifetime value"
-  ]
+    "acquisition", "churn", "LTV", "customer lifetime value",
+    "business continuity", "risk mitigation", "compliance",
+    "operational excellence", "digital transformation",
+    "innovation", "time to market", "competitive advantage",
+    "market penetration", "expansion", "consolidation",
+    "optimization", "automation", "modernization"
+  ],
+  "strategic_intelligence": [
+    "business model change", "business model shift", "business model overhaul",
+    "go-to-market change", "gtm strategy", "go-to-market strategy",
+    "channel strategy", "channel strategy shift", "channel realignment",
+    "partner model", "partner model change", "partner model restructure",
+    "licensing model", "licensing model change", "licensing overhaul",
+    "subscription model", "subscription mandatory", "perpetual license",
+    "channel disruption", "channel conflict", "channel management",
+    "market disruption", "industry disruption", "competitive disruption",
+    "strategic pivot", "strategic shift", "strategic realignment",
+    "organizational change", "organizational restructure", "restructuring",
+    "transformation", "digital transformation", "business transformation",
+    "platform strategy", "ecosystem strategy", "partnership strategy",
+    "alliance strategy", "joint venture", "strategic alliance",
+    "market entry", "market exit", "market expansion", "market consolidation",
+    "vertical integration", "horizontal integration", "divestiture",
+    "spin-off", "carve-out", "strategic investment", "strategic acquisition"
+  ],
+  "channel_intelligence": [
+    "channel partner", "channel program", "channel strategy", "channel management",
+    "partner enablement", "partner training", "partner certification",
+    "partner onboarding", "partner portal", "partner dashboard",
+    "reseller program", "reseller portal", "reseller training",
+    "distributor program", "distributor portal", "distributor training",
+    "var program", "value added reseller", "solution provider",
+    "system integrator", "managed service provider", "msp program",
+    "cloud solution provider", "csp program", "vcsp program",
+    "channel conflict", "channel management", "channel optimization",
+    "channel performance", "channel metrics", "channel kpis",
+    "deal registration", "lead registration", "opportunity registration",
+    "partner incentives", "channel incentives", "spiff program",
+    "mdf program", "marketing development fund", "co-op marketing",
+    "channel marketing", "partner marketing", "joint marketing",
+    "tier program", "tier benefits", "tier requirements", "tier migration",
+    "certification program", "competency program", "specialization program",
+    "partner benefits", "program benefits", "channel benefits"
+  ],
+  "supply_chain": [
+    "supply chain", "logistics", "fulfillment", "distribution",
+    "inventory", "stock", "shortage", "backorder", "lead time",
+    "delivery", "shipping", "freight", "warehouse", "storage",
+    "procurement", "sourcing", "supplier", "vendor management",
+    "component shortage", "chip shortage", "semiconductor",
+    "manufacturing", "production", "capacity", "allocation",
+    "channel partner", "reseller", "distributor", "VAR",
+    "supply disruption", "supply constraints", "availability"
+  ],
+  "market_strategy": [
+    "go-to-market", "GTM", "market entry", "expansion", "penetration",
+    "positioning", "branding", "marketing", "sales strategy",
+    "channel strategy", "partnership", "alliance", "joint venture",
+    "market segmentation", "target market", "customer segment",
+    "value chain", "ecosystem", "platform strategy",
+    "vertical market", "horizontal market", "niche market",
+    "market dynamics", "market trends", "market research",
+    "customer insights", "market intelligence", "competitive landscape"
+  ],
+  "product_technology": [
+    "innovation", "R&D", "research and development", "patent",
+    "intellectual property", "IP", "technology stack", "architecture",
+    "platform", "framework", "API", "integration", "interoperability",
+    "compatibility", "migration", "upgrade path", "roadmap",
+    "next generation", "emerging technology", "cutting edge",
+    "artificial intelligence", "AI", "machine learning", "ML",
+    "cloud native", "containerization", "microservices", "DevOps",
+    "agile", "automation", "orchestration", "virtualization"
+  ],
+  "vendor_ecosystem": [
+    "partner program", "channel program", "reseller program", "distributor program",
+    "var program", "value added reseller", "solution provider", "system integrator",
+    "csp", "cloud solution provider", "vcsp", "vmware cloud solution provider",
+    "vcp", "vmware certified professional", "msp", "managed service provider",
+    "program tier", "tier 1", "tier 2", "tier 3", "gold partner", "silver partner",
+    "platinum partner", "premier partner", "elite partner", "authorized reseller",
+    "certified partner", "accredited partner", "preferred partner", "select partner",
+    "strategic partner", "alliance partner", "technology partner", "oem partner",
+    "channel partner", "business partner", "sales partner", "distribution partner",
+    "program benefits", "partner benefits", "channel benefits", "reseller benefits",
+    "program requirements", "certification requirements", "training requirements",
+    "competency requirements", "sales requirements", "support requirements",
+    "program migration", "tier migration", "partner migration", "program transition",
+    "program sunset", "program retirement", "program consolidation", "program merger",
+    "channel conflict", "channel management", "partner enablement", "partner training",
+    "partner portal", "reseller portal", "partner dashboard", "channel tools",
+    "mdf", "marketing development fund", "co-op marketing", "channel marketing",
+    "spiff", "sales incentive", "rebate", "channel rebate", "volume rebate",
+    "deal registration", "lead registration", "opportunity registration",
+    "proof of concept", "poc", "pilot program", "trial program", "beta program",
+    "not for resale", "nfr", "demo license", "evaluation license", "test license"
+  ],
+  "vendor_specific_programs": {
+    "vmware": [
+      "vcsp", "vmware cloud solution provider", "vcp", "vmware certified professional", 
+      "vexpert", "vexpert program", "tam", "technical account manager", 
+      "partner connect", "vmware partner connect", "vsan ready node", 
+      "vmware ready", "solution exchange", "partner central", 
+      "vtsp", "vmware technology solutions provider", "vcap", "vcix", "vcdx",
+      "vcp-dcv", "vcp-nv", "vcp-cma", "vcp-dtm", "vcp-dw", "vcp-cloud"
+    ],
+    "microsoft": [
+      "csp", "cloud solution provider", "mpn", "microsoft partner network", 
+      "action pack", "maps", "microsoft action pack subscription", 
+      "competency", "competencies", "specialization", "advanced specialization",
+      "gold partner", "silver partner", "partner of record", "por",
+      "azure expert msp", "azure expert managed service provider",
+      "surface reseller", "surface authorized reseller", "surface partner",
+      "office 365 partner", "m365 partner", "dynamics 365 partner"
+    ],
+    "cisco": [
+      "select partner", "premier partner", "cisco select", "cisco premier",
+      "gold partner", "silver partner", "specialized partner", "master partner",
+      "architecture specialization", "technology specialization", "master specialization",
+      "enterprise specialization", "commercial specialization", "cisco learning",
+      "cisco capital", "cisco refresh", "cisco certified", "ccna", "ccnp", "ccie",
+      "partner locator", "partner program", "channel partner program"
+    ],
+    "dell": [
+      "partnerdirect", "partner direct", "authorized reseller", "authorized partner",
+      "preferred partner", "premier partner", "titanium partner", "gold partner",
+      "silver partner", "registered partner", "dell partner program",
+      "dell emc partner program", "dell technologies partner program",
+      "solution provider", "dell solution provider", "oem partner"
+    ],
+    "aws": [
+      "apn", "aws partner network", "consulting partner", "technology partner",
+      "standard tier", "advanced tier", "premier tier", "premier consulting partner",
+      "advanced consulting partner", "registered partner", "select partner",
+      "competency", "aws competency", "service delivery", "software",
+      "solution provider", "aws solution provider", "marketplace"
+    ]
+  }
 }

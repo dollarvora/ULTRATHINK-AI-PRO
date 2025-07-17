@@ -77,7 +77,31 @@ CONFIG = {
         },
         "google": {
             "enabled": True,
-            "queries": ["enterprise software pricing increase", "cybersecurity vendor price changes", "IT distributor margin compression", "cloud pricing updates AWS Azure", "hardware vendor surcharge", "vendor pricing announcements"],
+            "queries": [
+                "enterprise software pricing increase", 
+                "cybersecurity vendor price changes", 
+                "IT distributor margin compression", 
+                "cloud pricing updates AWS Azure", 
+                "hardware vendor surcharge", 
+                "vendor pricing announcements",
+                "partner program changes", 
+                "channel program updates", 
+                "reseller program modifications",
+                "vendor program discontinuation", 
+                "partner program shutdown", 
+                "channel partner migration",
+                "VCSP program changes", 
+                "VMware partner program", 
+                "Microsoft partner program updates",
+                "Cisco partner program changes", 
+                "Dell partner program modifications",
+                "vendor business model changes", 
+                "licensing model changes", 
+                "subscription model mandatory",
+                "vendor acquisition impact", 
+                "merger channel effects", 
+                "strategic partnership changes"
+            ],
             "results_per_query": 10,
             "date_restriction": "d7"
         }
