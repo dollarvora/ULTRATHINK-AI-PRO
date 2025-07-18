@@ -144,7 +144,8 @@ class HybridGPTSummarizer:
                 
             section_content = []
             # Enhanced selection with engagement-based override
-            selected_items = self._select_items_with_engagement_override(items, 20)
+            # INCREASED: From 20 to 100 to better utilize collected data
+            selected_items = self._select_items_with_engagement_override(items, 100)
             
             # Create sequential SOURCE_IDs for the actually selected items
             for item_index, item in enumerate(selected_items, 1):
@@ -772,11 +773,11 @@ CONTENT TO ANALYZE:
             return hybrid_score
         
         high_engagement_filtered.sort(key=calculate_hybrid_score, reverse=True)
-        priority_1 = high_engagement_filtered[:8]
+        priority_1 = high_engagement_filtered[:25]
         selected.extend(priority_1)
         
         # Enhanced logging for Priority 1 selection
-        logger.info(f"🥇 PRIORITY 1 (High Engagement + Relevance): Selected {len(priority_1)}/8 items")
+        logger.info(f"🥇 PRIORITY 1 (High Engagement + Relevance): Selected {len(priority_1)}/25 items")
         for i, item in enumerate(priority_1[:3]):  # Log top 3 for debugging
             title = item.get('title', 'No title')[:50]
             relevance = item.get('relevance_score', 0)
@@ -784,24 +785,24 @@ CONTENT TO ANALYZE:
             hybrid = calculate_hybrid_score(item)
             logger.info(f"   {i+1}. '{title}...' (Relevance: {relevance:.1f}, Engagement: {engagement}, Hybrid: {hybrid:.1f})")
         
-        # Priority 2: Business critical items not already selected (up to 6 slots)
+        # Priority 2: Business critical items not already selected (up to 20 slots)
         remaining_slots = limit - len(selected)
         if remaining_slots > 0:
             business_critical_new = [item for item in business_critical if item not in selected]
             # Enhanced sorting with relevance boost for business critical items
             business_critical_new.sort(key=lambda x: x.get('relevance_score', 0) + 2.0, reverse=True)  # +2.0 relevance boost
-            priority_2 = business_critical_new[:min(6, remaining_slots)]
+            priority_2 = business_critical_new[:min(20, remaining_slots)]
             selected.extend(priority_2)
-            logger.info(f"🥈 PRIORITY 2 (Business Critical): Selected {len(priority_2)}/6 items")
+            logger.info(f"🥈 PRIORITY 2 (Business Critical): Selected {len(priority_2)}/20 items")
         
-        # Priority 3: High relevance items not already selected (INCREASED to 6 slots)
+        # Priority 3: High relevance items not already selected (INCREASED to 20 slots)
         remaining_slots = limit - len(selected)
         if remaining_slots > 0:
             high_relevance_new = [item for item in high_relevance if item not in selected]
             high_relevance_new.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
-            priority_3 = high_relevance_new[:min(6, remaining_slots)]  # Increased from 4 to 6 slots
+            priority_3 = high_relevance_new[:min(20, remaining_slots)]  # Increased for 100-item processing
             selected.extend(priority_3)
-            logger.info(f"🥉 PRIORITY 3 (High Relevance): Selected {len(priority_3)}/6 items")
+            logger.info(f"🥉 PRIORITY 3 (High Relevance): Selected {len(priority_3)}/20 items")
             
             # Enhanced logging for high relevance items to debug Lenovo issue
             for i, item in enumerate(priority_3[:3]):
@@ -809,14 +810,14 @@ CONTENT TO ANALYZE:
                 relevance = item.get('relevance_score', 0)
                 logger.info(f"   {i+1}. '{title}...' (Relevance: {relevance:.1f})")
         
-        # Priority 4: Vendor-specific items not already selected (NEW - 4 slots)
+        # Priority 4: Vendor-specific items not already selected (NEW - 15 slots)
         remaining_slots = limit - len(selected)
         if remaining_slots > 0:
             vendor_specific_new = [item for item in vendor_specific if item not in selected]
             vendor_specific_new.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
-            priority_4 = vendor_specific_new[:min(4, remaining_slots)]
+            priority_4 = vendor_specific_new[:min(15, remaining_slots)]
             selected.extend(priority_4)
-            logger.info(f"🏢 PRIORITY 4 (Vendor Specific): Selected {len(priority_4)}/4 items")
+            logger.info(f"🏢 PRIORITY 4 (Vendor Specific): Selected {len(priority_4)}/15 items")
             
             # Log vendor-specific items for debugging
             for i, item in enumerate(priority_4[:3]):

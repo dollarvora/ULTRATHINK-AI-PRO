@@ -1136,6 +1136,24 @@ class EnhancedHTMLGenerator:
                 </p>
             </div>
             
+            <div class="transparency-section" style="background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%); border: 1px solid #2196f3; border-radius: 12px; padding: 20px; margin: 20px 0; position: relative;">
+                <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                    <span style="font-size: 24px; margin-right: 10px;">📊</span>
+                    <h3 style="margin: 0; color: #1976d2; font-size: 18px; font-weight: 600;">Data Collection Transparency</h3>
+                </div>
+                <div style="background: white; border-radius: 8px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <p style="margin: 0 0 10px 0; font-size: 14px; color: #37474f;">
+                        <strong>Total Data Collection:</strong> {reddit_count + google_count} articles fetched from all sources
+                    </p>
+                    <p style="margin: 0 0 10px 0; font-size: 14px; color: #37474f;">
+                        <strong>GPT Analysis:</strong> {actual_reddit_count + actual_google_count} highest-quality articles selected for detailed analysis
+                    </p>
+                    <p style="margin: 0; font-size: 13px; color: #616161; font-style: italic;">
+                        💡 Our intelligent filtering system prioritizes articles by relevance, engagement, business impact, and vendor intelligence to ensure the most actionable insights while maintaining manageable processing volumes.
+                    </p>
+                </div>
+            </div>
+            
             <div style="text-align: center; margin: 15px 0;">
                 <button onclick="expandAllSources()" style="background: #28a745; color: white; border: none; padding: 8px 16px; margin: 0 5px; border-radius: 4px; cursor: pointer;">
                     📂 Expand All Sources
@@ -1151,7 +1169,7 @@ class EnhancedHTMLGenerator:
             
             <div class="provider-section" style="border: 1px solid #ff4500; margin: 15px 0; border-radius: 8px; background: white;">
                 <div class="provider-header" onclick="toggleProvider('reddit-provider')" style="background: #ff4500; color: white; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: bold; font-size: 16px;">🔴 Reddit ({actual_reddit_count} items analyzed by GPT)</span>
+                    <span style="font-weight: bold; font-size: 16px;">🔴 Reddit ({reddit_count} fetched → {actual_reddit_count} analyzed by GPT)</span>
                     <span id="reddit-toggle" style="font-size: 18px;">▶</span>
                 </div>
                 <div id="reddit-provider" class="provider-content" style="display: none; padding: 15px; background: #fff;">
@@ -1161,7 +1179,7 @@ class EnhancedHTMLGenerator:
             
             <div class="provider-section" style="border: 1px solid #4285f4; margin: 15px 0; border-radius: 8px; background: white;">
                 <div class="provider-header" onclick="toggleProvider('google-provider')" style="background: #4285f4; color: white; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: bold; font-size: 16px;">🔍 Google ({actual_google_count} items analyzed by GPT)</span>
+                    <span style="font-weight: bold; font-size: 16px;">🔍 Google ({google_count} fetched → {actual_google_count} analyzed by GPT)</span>
                     <span id="google-toggle" style="font-size: 18px;">▶</span>
                 </div>
                 <div id="google-provider" class="provider-content" style="display: none; padding: 15px; background: #fff;">
