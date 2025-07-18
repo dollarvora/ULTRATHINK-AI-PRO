@@ -61,7 +61,8 @@ class EnhancedHTMLGenerator:
     
     def generate_html_report(self, insights: List[str], all_content: List[Dict[str, Any]], 
                            vendor_analysis: Dict[str, Any], config: Dict[str, Any],
-                           performance_metrics: Optional[Dict[str, Any]] = None) -> str:
+                           performance_metrics: Optional[Dict[str, Any]] = None,
+                           source_mapping: Optional[Dict[str, Any]] = None) -> str:
         """Generate complete HTML report matching backup system format exactly"""
         
         # Process data
@@ -69,9 +70,32 @@ class EnhancedHTMLGenerator:
         categorized_insights = self._categorize_insights_by_priority(insights)
         vendor_stats = self._generate_vendor_stats(vendor_analysis, all_content)
         
-        # Store content mapping for footnotes
+        # Store content mapping for footnotes - use provided source mapping if available
         self.content_items = all_content  # Store for footnote mapping
-        self._create_source_id_mapping(all_content)  # Create SOURCE_ID to content mapping
+        
+        if source_mapping:
+            # Use the GPT summarizer's source mapping for accurate footnote linking
+            self.source_id_mapping = {}
+            footnote_counter = 1
+            
+            # Sort source IDs to ensure consistent numbering (reddit first, then google)
+            sorted_source_ids = sorted(source_mapping.keys(), key=lambda x: (x.split('_')[0], int(x.split('_')[1])))
+            
+            for source_id in sorted_source_ids:
+                source_data = source_mapping[source_id]
+                self.source_id_mapping[source_id] = {
+                    'footnote_number': footnote_counter,
+                    'title': source_data.get('title', ''),
+                    'url': source_data.get('url', ''),
+                    'source': source_data.get('source', ''),
+                    'content_preview': source_data.get('content', '')[:200] + '...' if source_data.get('content', '') else ''
+                }
+                footnote_counter += 1
+            print(f"📋 Using GPT summarizer source mapping with {len(self.source_id_mapping)} items")
+        else:
+            # Fall back to original content mapping
+            self._create_source_id_mapping(all_content)
+            print(f"📋 Using original content mapping with {len(self.source_id_mapping)} items")
         
         # Calculate totals for sources section
         reddit_count = len(content_by_source.get('reddit', []))
@@ -332,23 +356,47 @@ class EnhancedHTMLGenerator:
             # Clean up insight text and extract source ID
             clean_insight = insight_text.replace('🔴', '').replace('🟡', '').replace('🟢', '').strip()
             
-            # Parse SOURCE_ID from insight if present
+            # ENHANCED: Multi-pattern SOURCE_ID extraction with debugging
             import re
-            source_id_match = re.search(r'\[([^\]]+)\]$', clean_insight)
+            source_id = None
             
-            if source_id_match and hasattr(self, 'source_id_mapping'):
-                source_id = source_id_match.group(1)
-                # Remove the SOURCE_ID from the insight text
-                clean_insight = re.sub(r'\s*\[([^\]]+)\]$', '', clean_insight)
-                
-                # Get footnote number from mapping
+            # Enhanced SOURCE_ID extraction with multiple pattern attempts
+            source_id_patterns = [
+                r'\[([^\]]+)\]$',           # Current pattern - at end of text
+                r'\[([^\]]+)\]',            # Anywhere in text
+                r'\[(reddit_\d+)\]',        # Specific reddit pattern
+                r'\[(google_\d+)\]',        # Specific google pattern
+                r'SOURCE_ID:\s*([^\s\]]+)', # Explicit SOURCE_ID format
+                r'\[([a-zA-Z]+_\d+)\]',     # General source_number pattern
+            ]
+            
+            # Try each pattern to find SOURCE_ID
+            for pattern in source_id_patterns:
+                match = re.search(pattern, clean_insight)
+                if match:
+                    source_id = match.group(1)
+                    # Remove the SOURCE_ID from the insight text
+                    clean_insight = re.sub(r'\s*\[([^\]]+)\]', '', clean_insight)
+                    if self.debug:
+                        print(f"🔍 SOURCE_ID FOUND: '{source_id}' using pattern '{pattern}' in insight: '{clean_insight[:50]}...'")
+                    break
+            
+            # Get footnote number from mapping
+            if source_id and hasattr(self, 'source_id_mapping'):
                 if source_id in self.source_id_mapping:
                     footnote_num = self.source_id_mapping[source_id]['footnote_number']
+                    if self.debug:
+                        print(f"✅ SOURCE_ID MAPPING SUCCESS: '{source_id}' -> footnote #{footnote_num}")
                 else:
-                    # Fallback to sequential numbering
+                    # Log missing SOURCE_ID for debugging
+                    if self.debug:
+                        print(f"❌ SOURCE_ID MAPPING MISS: '{source_id}' not found in mapping")
+                        print(f"   Available SOURCE_IDs: {list(self.source_id_mapping.keys())}")
                     footnote_num = len(insights_html) + 1
             else:
-                # Fallback to sequential numbering if no SOURCE_ID found
+                # Log missing SOURCE_ID for debugging
+                if self.debug:
+                    print(f"⚠️ NO SOURCE_ID FOUND in insight: '{clean_insight[:80]}...'")
                 footnote_num = len(insights_html) + 1
             
             # Add footnote reference to each insight
@@ -991,55 +1039,89 @@ class EnhancedHTMLGenerator:
 
     def _generate_detailed_sources_section(self, content_by_source: Dict[str, List[Dict[str, Any]]], 
                                          gpt_analyzed_count: int, reddit_count: int, google_count: int) -> str:
-        """Generate detailed content sources section with actual counts and links"""
+        """Generate detailed content sources section with synchronized footnote numbering"""
         
-        # Build footnote references for actual content
+        # Build footnote references using SOURCE_ID mapping for consistent numbering
         footnotes = []
-        footnote_counter = 1
         
-        # Generate source items with footnotes
+        # Generate source items with footnotes synchronized to source_id_mapping
         reddit_items_html = ""
         google_items_html = ""
         
-        for source, items in content_by_source.items():
-            if source == 'reddit' and items:
-                for i, item in enumerate(items[:20]):  # Show up to 20 items
-                    title = item.get('title', 'No title')[:80] + "..." if len(item.get('title', '')) > 80 else item.get('title', 'No title')
-                    url = item.get('url', '#')
-                    subreddit = item.get('subreddit', 'reddit')
-                    score = item.get('relevance_score', item.get('score', 0))
-                    
-                    reddit_items_html += f"""
-                    <div id="footnote-{footnote_counter}" style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-left: 3px solid #ff4500; border-radius: 4px;">
-                        <a href="{url}" target="_blank" style="color: #ff4500; text-decoration: none; font-weight: 500;">
-                            r/{subreddit}: {title} <sup>[{footnote_counter}]</sup>
-                        </a>
-                        <div style="font-size: 11px; color: #666; margin-top: 4px;">
-                            Relevance Score: {score:.1f} | <a href="{url}" target="_blank" style="color: #ff4500;">View Source</a>
-                        </div>
-                    </div>
-                    """
-                    footnotes.append(f'<a href="{url}" target="_blank">[{footnote_counter}] {title}</a>')
-                    footnote_counter += 1
+        # Create lookup for SOURCE_ID to footnote number from our mapping
+        source_id_to_footnote = {}
+        if hasattr(self, 'source_id_mapping'):
+            source_id_to_footnote = {sid: data for sid, data in self.source_id_mapping.items()}
+        
+        # Only generate footnotes for items that exist in source_id_mapping (items GPT analyzed)
+        # This prevents duplicate footnote IDs
+        reddit_analyzed_items = []
+        google_analyzed_items = []
+        
+        # Filter items to only include those that were analyzed by GPT
+        for source_id, mapping_data in source_id_to_footnote.items():
+            source_type = source_id.split('_')[0]
             
-            elif source == 'google' and items:
-                for i, item in enumerate(items[:20]):  # Show up to 20 items
-                    title = item.get('title', 'No title')[:80] + "..." if len(item.get('title', '')) > 80 else item.get('title', 'No title')
-                    url = item.get('url', '#')
-                    score = item.get('relevance_score', item.get('score', 0))
-                    
-                    google_items_html += f"""
-                    <div id="footnote-{footnote_counter}" style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-left: 3px solid #4285f4; border-radius: 4px;">
-                        <a href="{url}" target="_blank" style="color: #4285f4; text-decoration: none; font-weight: 500;">
-                            {title} <sup>[{footnote_counter}]</sup>
-                        </a>
-                        <div style="font-size: 11px; color: #666; margin-top: 4px;">
-                            Relevance Score: {score:.1f} | <a href="{url}" target="_blank" style="color: #4285f4;">View Source</a>
-                        </div>
-                    </div>
-                    """
-                    footnotes.append(f'<a href="{url}" target="_blank">[{footnote_counter}] {title}</a>')
-                    footnote_counter += 1
+            if source_type == 'reddit':
+                # Find the corresponding item in content_by_source
+                reddit_items = content_by_source.get('reddit', [])
+                for item in reddit_items:
+                    if (item.get('title', '') == mapping_data['title'] or 
+                        item.get('url', '') == mapping_data['url']):
+                        reddit_analyzed_items.append((source_id, item, mapping_data))
+                        break
+            
+            elif source_type == 'google':
+                # Find the corresponding item in content_by_source
+                google_items = content_by_source.get('google', [])
+                for item in google_items:
+                    if (item.get('title', '') == mapping_data['title'] or 
+                        item.get('url', '') == mapping_data['url']):
+                        google_analyzed_items.append((source_id, item, mapping_data))
+                        break
+        
+        # Calculate the actual counts of items analyzed by GPT
+        actual_reddit_count = len(reddit_analyzed_items)
+        actual_google_count = len(google_analyzed_items)
+        
+        # Generate Reddit items HTML only for GPT-analyzed items
+        for source_id, item, mapping_data in reddit_analyzed_items:
+            title = item.get('title', 'No title')[:80] + "..." if len(item.get('title', '')) > 80 else item.get('title', 'No title')
+            url = item.get('url', '#')
+            subreddit = item.get('subreddit', 'reddit')
+            score = item.get('relevance_score', item.get('score', 0))
+            footnote_num = mapping_data['footnote_number']
+            
+            reddit_items_html += f"""
+            <div id="footnote-{footnote_num}" style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-left: 3px solid #ff4500; border-radius: 4px;">
+                <a href="{url}" target="_blank" style="color: #ff4500; text-decoration: none; font-weight: 500;">
+                    r/{subreddit}: {title} <sup>[{footnote_num}]</sup>
+                </a>
+                <div style="font-size: 11px; color: #666; margin-top: 4px;">
+                    Relevance Score: {score:.1f} | <a href="{url}" target="_blank" style="color: #ff4500;">View Source</a>
+                </div>
+            </div>
+            """
+            footnotes.append(f'<a href="{url}" target="_blank">[{footnote_num}] {title}</a>')
+        
+        # Generate Google items HTML only for GPT-analyzed items
+        for source_id, item, mapping_data in google_analyzed_items:
+            title = item.get('title', 'No title')[:80] + "..." if len(item.get('title', '')) > 80 else item.get('title', 'No title')
+            url = item.get('url', '#')
+            score = item.get('relevance_score', item.get('score', 0))
+            footnote_num = mapping_data['footnote_number']
+            
+            google_items_html += f"""
+            <div id="footnote-{footnote_num}" style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-left: 3px solid #4285f4; border-radius: 4px;">
+                <a href="{url}" target="_blank" style="color: #4285f4; text-decoration: none; font-weight: 500;">
+                    {title} <sup>[{footnote_num}]</sup>
+                </a>
+                <div style="font-size: 11px; color: #666; margin-top: 4px;">
+                    Relevance Score: {score:.1f} | <a href="{url}" target="_blank" style="color: #4285f4;">View Source</a>
+                </div>
+            </div>
+            """
+            footnotes.append(f'<a href="{url}" target="_blank">[{footnote_num}] {title}</a>')
         
         # Generate the complete sources section
         sources_html = f"""
@@ -1069,7 +1151,7 @@ class EnhancedHTMLGenerator:
             
             <div class="provider-section" style="border: 1px solid #ff4500; margin: 15px 0; border-radius: 8px; background: white;">
                 <div class="provider-header" onclick="toggleProvider('reddit-provider')" style="background: #ff4500; color: white; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: bold; font-size: 16px;">🔴 Reddit ({reddit_count} items analyzed by GPT)</span>
+                    <span style="font-weight: bold; font-size: 16px;">🔴 Reddit ({actual_reddit_count} items analyzed by GPT)</span>
                     <span id="reddit-toggle" style="font-size: 18px;">▶</span>
                 </div>
                 <div id="reddit-provider" class="provider-content" style="display: none; padding: 15px; background: #fff;">
@@ -1079,7 +1161,7 @@ class EnhancedHTMLGenerator:
             
             <div class="provider-section" style="border: 1px solid #4285f4; margin: 15px 0; border-radius: 8px; background: white;">
                 <div class="provider-header" onclick="toggleProvider('google-provider')" style="background: #4285f4; color: white; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: bold; font-size: 16px;">🔍 Google ({google_count} items analyzed by GPT)</span>
+                    <span style="font-weight: bold; font-size: 16px;">🔍 Google ({actual_google_count} items analyzed by GPT)</span>
                     <span id="google-toggle" style="font-size: 18px;">▶</span>
                 </div>
                 <div id="google-provider" class="provider-content" style="display: none; padding: 15px; background: #fff;">

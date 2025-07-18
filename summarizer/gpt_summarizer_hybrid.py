@@ -40,7 +40,7 @@ import logging
 import re
 import hashlib
 from datetime import datetime, timedelta
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -145,7 +145,9 @@ class HybridGPTSummarizer:
             section_content = []
             # Enhanced selection with engagement-based override
             selected_items = self._select_items_with_engagement_override(items, 20)
-            for item in selected_items:
+            
+            # Create sequential SOURCE_IDs for the actually selected items
+            for item_index, item in enumerate(selected_items, 1):
                 # Enhanced item processing with vendor detection
                 title = item.get('title', '')
                 content = item.get('content', item.get('text', ''))
@@ -168,8 +170,8 @@ class HybridGPTSummarizer:
                     full_text = f"{title} {content}".lower()
                     detected_vendors = [vendor for vendor in self.key_vendors if vendor.lower() in full_text]
                 
-                # Create rich item representation with source ID for footnote tracking
-                source_id = f"{source}_{total_items + 1}"
+                # Create sequential SOURCE_ID based on actually selected items
+                source_id = f"{source}_{item_index}"
                 item_text = f"SOURCE_ID: {source_id}\n"
                 item_text += f"TITLE: {title}\n"
                 if content and content != title:
@@ -184,7 +186,7 @@ class HybridGPTSummarizer:
                     item_text += f"URL: {url}\n"
                 item_text += "---\n"
                 
-                # Store source mapping for footnote generation
+                # Store source mapping for footnote generation with sequential IDs
                 self.source_mapping[source_id] = {
                     'title': title,
                     'url': url,
@@ -196,6 +198,11 @@ class HybridGPTSummarizer:
                 
                 section_content.append(item_text)
                 total_items += 1
+                
+                # Debug logging for Lenovo content
+                if 'lenovo' in detected_vendors or 'lenovo' in title.lower() or 'lenovo' in content.lower():
+                    logger.info(f"🔍 LENOVO CONTENT SELECTED: {source_id} - '{title[:50]}...'")
+                    logger.info(f"   📊 Relevance: {score}, Vendors: {detected_vendors}")
             
             if section_content:
                 source_section = f"\n=== {source.upper()} SOURCE ({len(section_content)} items) ===\n"
@@ -204,9 +211,9 @@ class HybridGPTSummarizer:
         
         combined_content = "\n\n".join(processed_sections)
         
-        # Original's token management (8000 chars ≈ 2000 tokens)
-        if len(combined_content) > 8000:
-            combined_content = combined_content[:8000] + "\n\n[CONTENT TRUNCATED]"
+        # Enhanced token management (25000 chars ≈ 6250 tokens, well within GPT-4's 128k limit)
+        if len(combined_content) > 25000:
+            combined_content = combined_content[:25000] + "\n\n[CONTENT TRUNCATED]"
         
         logger.info(f"Preprocessed {total_items} total items across {len(processed_sections)} sources")
         return combined_content
@@ -549,6 +556,34 @@ Generate unified pricing intelligence that covers:
 6. MANDATORY: Every insight must end with [SOURCE_ID] where SOURCE_ID is the exact ID from the source content
 7. Example: "Microsoft pricing increase of 15% [reddit_1]" or "Dell server shortage reported [google_3]"
 
+🚨 SOURCE_ID REQUIREMENTS (ABSOLUTELY MANDATORY - SYSTEM WILL FAIL WITHOUT THESE):
+
+**CRITICAL: READ THIS CAREFULLY - YOUR RESPONSE WILL BE REJECTED IF YOU DON'T FOLLOW THIS:**
+
+1. **EVERY SINGLE INSIGHT MUST END WITH [SOURCE_ID]** - NO EXCEPTIONS
+2. **Format: "Your insight text here [SOURCE_ID]"** where SOURCE_ID matches EXACT ID from content
+3. **Find SOURCE_ID in content**: Look for "SOURCE_ID: reddit_1" or "SOURCE_ID: google_2" in each content item
+4. **Copy EXACT SOURCE_ID**: Use reddit_1, google_2, reddit_15, google_7 (exactly as shown)
+5. **NO generic numbering**: Never use [1], [2], [3] - only use the exact SOURCE_ID from content
+
+**EXAMPLES OF CORRECT FORMAT:**
+- "Microsoft pricing increase of 15% effective Q4 [reddit_1]"
+- "Dell server shortage reported in distribution channels [google_2]"
+- "VMware partner program disruption affecting thousands [reddit_15]"
+
+**INVALID EXAMPLES THAT WILL CAUSE SYSTEM FAILURE:**
+- "Microsoft pricing increase of 15%" (missing SOURCE_ID)
+- "Dell server shortage [1]" (generic numbering)
+- "VMware disruption [wrong_id]" (SOURCE_ID not found in content)
+
+**MANDATORY VALIDATION BEFORE SUBMISSION:**
+✅ Count your insights - every single one must have [SOURCE_ID] at the end
+✅ Verify SOURCE_ID matches exactly what's in the content (reddit_X, google_X)
+✅ Double-check there are no insights missing SOURCE_ID references
+✅ Confirm SOURCE_ID format is correct (square brackets, exact match)
+
+**FAILURE TO INCLUDE SOURCE_IDs WILL RESULT IN SYSTEM MALFUNCTION**
+
 CONTENT TO ANALYZE:
 
 {combined_content}"""
@@ -561,39 +596,19 @@ CONTENT TO ANALYZE:
         
         fallback = {
             "pricing_intelligence_summary": {
-                "executive_overview": "Pricing intelligence system temporarily operating in fallback mode. Comprehensive vendor monitoring continues with manual verification recommended for critical procurement decisions.",
-                "critical_insights": [
-                    "🔴 SYSTEM ALERT: Direct vendor portal monitoring recommended for urgent pricing updates",
-                    "🟡 COVERAGE: Monitor key distributors (TD Synnex, Ingram Micro, CDW) for price communications",
-                    "🟢 STRATEGY: Maintain procurement relationships while system intelligence is restored"
-                ],
+                "executive_overview": "Pricing intelligence system encountered processing issues. No actionable insights generated from current data set.",
+                "critical_insights": [],
                 "vendor_landscape": {
-                    "pricing_changes": [
-                        {"vendor": "Multiple", "change": "System monitoring temporarily limited", "impact": "Medium", "timeframe": "Current"}
-                    ],
-                    "market_movements": [
-                        {"type": "System Alert", "description": "Manual intelligence gathering recommended", "implications": "Temporary process adjustment needed"}
-                    ],
-                    "supply_chain_alerts": [
-                        {"vendor": "All Vendors", "issue": "Direct supplier contact recommended for critical items", "severity": "Moderate"}
-                    ]
+                    "pricing_changes": [],
+                    "market_movements": [],
+                    "supply_chain_alerts": []
                 },
-                "strategic_recommendations": [
-                    "Activate manual vendor monitoring procedures for critical procurement items",
-                    "Maintain direct communication channels with key supplier representatives",
-                    "Review and update vendor portal access credentials for direct price checking",
-                    "Schedule follow-up system diagnostics to restore full intelligence capabilities"
-                ],
+                "strategic_recommendations": [],
+                "automated_action_recommendations": [],
                 "market_intelligence": {
-                    "trending_vendors": [
-                        {"vendor": "System Status", "mentions": 1, "sentiment": "Neutral", "key_topics": ["monitoring", "manual_verification"]}
-                    ],
-                    "pricing_patterns": [
-                        "System analysis temporarily limited - recommend direct vendor communication"
-                    ],
-                    "risk_factors": [
-                        "Reduced automated monitoring may impact response time to market changes"
-                    ]
+                    "trending_vendors": [],
+                    "pricing_patterns": [],
+                    "risk_factors": []
                 }
             },
             "coverage_metrics": {
@@ -617,6 +632,7 @@ CONTENT TO ANALYZE:
         high_engagement = []
         business_critical = []
         high_relevance = []
+        vendor_specific = []  # NEW: Vendor-specific content category
         regular_items = []
         
         for item in items:
@@ -631,6 +647,20 @@ CONTENT TO ANALYZE:
             is_business_critical = self._has_business_critical_keywords(full_text)
             is_high_engagement = score > 50 or num_comments > 20
             is_high_relevance = relevance_score >= 7.0
+            
+            # NEW: Vendor-specific content detection with lower thresholds
+            is_vendor_specific = self._is_vendor_specific_content(full_text, relevance_score)
+            
+            # Apply vendor boost to relevance score for key vendors
+            if is_vendor_specific:
+                # Boost relevance for vendor-specific content
+                original_relevance = relevance_score
+                relevance_score = self._apply_vendor_boost(full_text, relevance_score)
+                if relevance_score != original_relevance:
+                    logger.info(f"📈 VENDOR BOOST: '{title[:50]}...' relevance {original_relevance:.1f} -> {relevance_score:.1f}")
+                    # Re-evaluate high_relevance with boosted score
+                    if relevance_score >= 7.0:
+                        is_high_relevance = True
             
             # Debug logging for VCSP-like content
             if 'vcsp' in full_text or 'program' in title or score > 100:
@@ -651,59 +681,270 @@ CONTENT TO ANALYZE:
                 high_relevance.append(item)
                 logger.info(f"⭐ HIGH RELEVANCE: '{title[:50]}...' (Score: {relevance_score})")
             
-            if not (is_high_engagement or is_business_critical or is_high_relevance):
+            if is_vendor_specific:
+                vendor_specific.append(item)
+                logger.info(f"🏢 VENDOR SPECIFIC: '{title[:50]}...' (Relevance: {relevance_score})")
+            
+            if not (is_high_engagement or is_business_critical or is_high_relevance or is_vendor_specific):
                 regular_items.append(item)
         
         # Log category counts
-        logger.info(f"📋 CATEGORIZATION: High Engagement: {len(high_engagement)}, Business Critical: {len(business_critical)}, High Relevance: {len(high_relevance)}, Regular: {len(regular_items)}")
+        logger.info(f"📋 CATEGORIZATION: High Engagement: {len(high_engagement)}, Business Critical: {len(business_critical)}, High Relevance: {len(high_relevance)}, Vendor Specific: {len(vendor_specific)}, Regular: {len(regular_items)}")
         
         # Priority selection with guaranteed slots
         selected = []
         
-        # Priority 1: High engagement items (up to 8 slots)
-        high_engagement.sort(key=lambda x: x.get('score', 0) + x.get('num_comments', 0), reverse=True)
-        priority_1 = high_engagement[:8]
+        # Priority 1: High engagement items with RELEVANCE-FIRST hybrid scoring (up to 8 slots)
+        # CRITICAL FIX: Implement hybrid scoring to prioritize relevance over pure engagement
+        
+        # ENHANCED: Tiered Relevance Thresholds for better MSP/Security content capture
+        high_engagement_filtered = []
+        
+        for item in high_engagement:
+            relevance_score = item.get('relevance_score', 0)
+            title = item.get('title', '').lower()
+            content = item.get('content', '').lower()
+            combined_text = f"{title} {content}"
+            
+            # Tier 1: High confidence (2.0+) - Always include
+            if relevance_score >= 2.0:
+                high_engagement_filtered.append(item)
+                continue
+                
+            # Tier 2: Medium confidence (1.5-1.9) - Include if MSP/Security content
+            if relevance_score >= 1.5:
+                # Check for MSP intelligence patterns
+                msp_patterns = [
+                    'msp', 'managed service provider', 'experience with', 'thoughts on',
+                    'server', 'storage', 'lenovo', 'dell', 'hp', 'procurement',
+                    'r/msp', '/r/msp', 'vendor experience', 'hardware evaluation',
+                    'cisco', 'vmware', 'azure', 'aws', 'microsoft', 'office 365',
+                    'backup', 'disaster recovery', 'cloud migration', 'it services',
+                    'helpdesk', 'remote monitoring', 'patch management', 'client',
+                    'pricing', 'margin', 'profit', 'revenue', 'contract', 'proposal'
+                ]
+                
+                # Check for security intelligence patterns
+                security_patterns = [
+                    'defender', 'security', 'antivirus', 'endpoint', 'microsoft defender',
+                    'makes me suffer', 'frustrated with', 'issues with', 'problems with',
+                    'security performance', 'security issues', 'security problems',
+                    'crowdstrike', 'sentinel', 'sophos', 'kaspersky', 'bitdefender',
+                    'malware', 'ransomware', 'firewall', 'vpn', 'compliance',
+                    'vulnerability', 'patch', 'threat', 'incident', 'breach',
+                    'cybersecurity', 'zero trust', 'siem', 'soc', 'mfa'
+                ]
+                
+                # Include if contains MSP or security patterns
+                if any(pattern in combined_text for pattern in msp_patterns + security_patterns):
+                    high_engagement_filtered.append(item)
+                    logger.info(f"🎯 TIER 2 INCLUSION: Medium relevance ({relevance_score:.1f}) MSP/Security content included: '{title[:60]}...'")
+                    continue
+                    
+            # Tier 3: Business-critical bypass (any relevance) - Include if business-critical keywords
+            business_critical_patterns = [
+                'thousands of partners', 'hundreds of partners', 'program shutdown',
+                'partner program', 'vcsp', 'vcp', 'program closure', 'program end',
+                'migration deadline', 'forced migration', 'all partners', 'entire channel',
+                'acquisition', 'merger', 'bankruptcy', 'layoffs', 'restructuring',
+                'ipo', 'funding', 'investment', 'valuation', 'market crash',
+                'supply chain', 'shortage', 'recall', 'lawsuit', 'regulation',
+                'partnership', 'strategic', 'enterprise', 'fortune 500'
+            ]
+            
+            if any(pattern in combined_text for pattern in business_critical_patterns):
+                high_engagement_filtered.append(item)
+                logger.info(f"🚨 BUSINESS-CRITICAL BYPASS: Critical content included regardless of relevance ({relevance_score:.1f}): '{title[:60]}...'")
+                continue
+        
+        # Log filtering results
+        if len(high_engagement_filtered) < len(high_engagement):
+            filtered_count = len(high_engagement) - len(high_engagement_filtered)
+            logger.info(f"🔍 TIERED RELEVANCE FILTER: Filtered out {filtered_count} low-relevance items using tiered thresholds")
+        
+        # Hybrid scoring: Relevance (70%) + Engagement (30%)
+        def calculate_hybrid_score(item):
+            relevance_score = item.get('relevance_score', 0)
+            engagement_score = item.get('score', 0) + item.get('num_comments', 0)
+            # Normalize engagement score (typical range 0-500) to 0-10 scale
+            normalized_engagement = min(engagement_score / 50.0, 10.0)
+            hybrid_score = (relevance_score * 0.7) + (normalized_engagement * 0.3)
+            return hybrid_score
+        
+        high_engagement_filtered.sort(key=calculate_hybrid_score, reverse=True)
+        priority_1 = high_engagement_filtered[:8]
         selected.extend(priority_1)
-        logger.info(f"🥇 PRIORITY 1 (High Engagement): Selected {len(priority_1)}/8 items")
+        
+        # Enhanced logging for Priority 1 selection
+        logger.info(f"🥇 PRIORITY 1 (High Engagement + Relevance): Selected {len(priority_1)}/8 items")
+        for i, item in enumerate(priority_1[:3]):  # Log top 3 for debugging
+            title = item.get('title', 'No title')[:50]
+            relevance = item.get('relevance_score', 0)
+            engagement = item.get('score', 0) + item.get('num_comments', 0)
+            hybrid = calculate_hybrid_score(item)
+            logger.info(f"   {i+1}. '{title}...' (Relevance: {relevance:.1f}, Engagement: {engagement}, Hybrid: {hybrid:.1f})")
         
         # Priority 2: Business critical items not already selected (up to 6 slots)
         remaining_slots = limit - len(selected)
         if remaining_slots > 0:
             business_critical_new = [item for item in business_critical if item not in selected]
-            business_critical_new.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
+            # Enhanced sorting with relevance boost for business critical items
+            business_critical_new.sort(key=lambda x: x.get('relevance_score', 0) + 2.0, reverse=True)  # +2.0 relevance boost
             priority_2 = business_critical_new[:min(6, remaining_slots)]
             selected.extend(priority_2)
             logger.info(f"🥈 PRIORITY 2 (Business Critical): Selected {len(priority_2)}/6 items")
         
-        # Priority 3: High relevance items not already selected (up to 4 slots)
+        # Priority 3: High relevance items not already selected (INCREASED to 6 slots)
         remaining_slots = limit - len(selected)
         if remaining_slots > 0:
             high_relevance_new = [item for item in high_relevance if item not in selected]
             high_relevance_new.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
-            priority_3 = high_relevance_new[:min(4, remaining_slots)]
+            priority_3 = high_relevance_new[:min(6, remaining_slots)]  # Increased from 4 to 6 slots
             selected.extend(priority_3)
-            logger.info(f"🥉 PRIORITY 3 (High Relevance): Selected {len(priority_3)}/4 items")
+            logger.info(f"🥉 PRIORITY 3 (High Relevance): Selected {len(priority_3)}/6 items")
+            
+            # Enhanced logging for high relevance items to debug Lenovo issue
+            for i, item in enumerate(priority_3[:3]):
+                title = item.get('title', 'No title')[:50]
+                relevance = item.get('relevance_score', 0)
+                logger.info(f"   {i+1}. '{title}...' (Relevance: {relevance:.1f})")
         
-        # Priority 4: Fill remaining slots with best regular items
+        # Priority 4: Vendor-specific items not already selected (NEW - 4 slots)
+        remaining_slots = limit - len(selected)
+        if remaining_slots > 0:
+            vendor_specific_new = [item for item in vendor_specific if item not in selected]
+            vendor_specific_new.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
+            priority_4 = vendor_specific_new[:min(4, remaining_slots)]
+            selected.extend(priority_4)
+            logger.info(f"🏢 PRIORITY 4 (Vendor Specific): Selected {len(priority_4)}/4 items")
+            
+            # Log vendor-specific items for debugging
+            for i, item in enumerate(priority_4[:3]):
+                title = item.get('title', 'No title')[:50]
+                relevance = item.get('relevance_score', 0)
+                logger.info(f"   {i+1}. '{title}...' (Relevance: {relevance:.1f})")
+        
+        # Priority 5: Fill remaining slots with best regular items
         remaining_slots = limit - len(selected)
         if remaining_slots > 0:
             regular_new = [item for item in regular_items if item not in selected]
             regular_new.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
-            priority_4 = regular_new[:remaining_slots]
-            selected.extend(priority_4)
-            logger.info(f"🏅 PRIORITY 4 (Regular): Selected {len(priority_4)}/{remaining_slots} items")
+            priority_5 = regular_new[:remaining_slots]
+            selected.extend(priority_5)
+            logger.info(f"🏅 PRIORITY 5 (Regular): Selected {len(priority_5)}/{remaining_slots} items")
+        
+        # CRITICAL FIX: Cross-priority relevance check to prevent very low relevance items
+        # Remove any item with relevance < 1.0 unless it's business critical or vendor specific
+        before_count = len(selected)
+        selected = [item for item in selected if 
+                   item.get('relevance_score', 0) >= 1.0 or 
+                   self._has_business_critical_keywords(f"{item.get('title', '')} {item.get('content', item.get('text', ''))}") or
+                   self._is_vendor_specific_content(f"{item.get('title', '')} {item.get('content', item.get('text', ''))}")]
+        
+        if len(selected) < before_count:
+            removed_count = before_count - len(selected)
+            logger.info(f"🔍 CROSS-PRIORITY FILTER: Removed {removed_count} very low relevance items (< 1.0)")
         
         final_selection = selected[:limit]
         logger.info(f"🎯 FINAL SELECTION: {len(final_selection)} items selected for GPT analysis")
         
-        # Log final selection for debugging
+        # Enhanced logging for final selection - show if fix worked
+        logger.info("🔍 RELEVANCE-FIRST SELECTION RESULTS:")
         for i, item in enumerate(final_selection):
             title = item.get('title', 'No title')[:60]
             score = item.get('score', 0)
             relevance = item.get('relevance_score', 0)
-            logger.info(f"   {i+1:2d}. '{title}...' (Reddit: {score}, Relevance: {relevance:.1f})")
+            
+            # Highlight high relevance items (should now be prioritized)
+            if relevance >= 7.0:
+                logger.info(f"   {i+1:2d}. 🎯 '{title}...' (Reddit: {score}, Relevance: {relevance:.1f}) [HIGH RELEVANCE]")
+            else:
+                logger.info(f"   {i+1:2d}. '{title}...' (Reddit: {score}, Relevance: {relevance:.1f})")
         
         return final_selection
+    
+    def _is_vendor_specific_content(self, text: str, relevance_score: float = 0) -> bool:
+        """Check if content is vendor-specific and should be prioritized"""
+        text_lower = text.lower()
+        
+        # Hardware vendors that should be prioritized
+        hardware_vendors = [
+            'lenovo', 'dell', 'cisco', 'hpe', 'hp', 'vmware', 'broadcom',
+            'fortinet', 'palo alto', 'aruba', 'juniper', 'netapp', 'pure storage'
+        ]
+        
+        # Vendor experience patterns
+        vendor_patterns = [
+            'experience with', 'thoughts on', 'what\'s your experience',
+            'anyone using', 'anyone tried', 'recommendations for',
+            'servers + storage', 'server storage', 'hardware evaluation',
+            'vendor comparison', 'vs dell', 'vs cisco', 'vs lenovo',
+            'r/msp', '/r/msp', 'msp community', 'managed service provider'
+        ]
+        
+        # Check for hardware vendor mentions
+        vendor_found = False
+        for vendor in hardware_vendors:
+            if vendor in text_lower:
+                vendor_found = True
+                break
+        
+        # Check for vendor experience patterns
+        pattern_found = False
+        for pattern in vendor_patterns:
+            if pattern in text_lower:
+                pattern_found = True
+                break
+        
+        # Must have both vendor and pattern, or high relevance with vendor
+        if vendor_found and pattern_found:
+            return True
+        elif vendor_found and relevance_score >= 4.0:  # Lower threshold for vendor content
+            return True
+        
+        return False
+    
+    def _apply_vendor_boost(self, text: str, relevance_score: float) -> float:
+        """Apply vendor-specific boost to relevance score"""
+        text_lower = text.lower()
+        
+        # Tier 1 vendors (highest boost)
+        tier1_vendors = ['lenovo', 'dell', 'cisco', 'vmware', 'broadcom', 'microsoft']
+        # Tier 2 vendors (medium boost)
+        tier2_vendors = ['hpe', 'hp', 'fortinet', 'palo alto', 'aruba', 'juniper']
+        # Tier 3 vendors (small boost)
+        tier3_vendors = ['netapp', 'pure storage', 'sophos', 'trend micro']
+        
+        boost = 0.0
+        
+        for vendor in tier1_vendors:
+            if vendor in text_lower:
+                boost = max(boost, 1.5)  # +1.5 boost for tier 1
+        
+        for vendor in tier2_vendors:
+            if vendor in text_lower:
+                boost = max(boost, 1.0)  # +1.0 boost for tier 2
+        
+        for vendor in tier3_vendors:
+            if vendor in text_lower:
+                boost = max(boost, 0.5)  # +0.5 boost for tier 3
+        
+        # Additional boost for specific patterns
+        high_value_patterns = [
+            'experience with', 'thoughts on', 'what\'s your experience',
+            'servers + storage', 'server storage', 'hardware evaluation',
+            'r/msp', '/r/msp'
+        ]
+        
+        for pattern in high_value_patterns:
+            if pattern in text_lower:
+                boost += 0.5  # Additional pattern boost
+                break
+        
+        boosted_score = relevance_score + boost
+        
+        # Cap at reasonable maximum
+        return min(boosted_score, 10.0)
     
     def _has_business_critical_keywords(self, text):
         """Check if text contains business critical keywords with enhanced detection"""
@@ -894,6 +1135,157 @@ CONTENT TO ANALYZE:
             "source_count": len(source_ids)
         }
     
+    def _fix_invalid_source_id(self, invalid_id: str, available_ids: List[str]) -> Optional[str]:
+        """Try to fix invalid SOURCE_ID by finding closest match"""
+        # Try exact prefix match (e.g., 'reddit_1' matches 'reddit_15')
+        prefix = invalid_id.split('_')[0] if '_' in invalid_id else invalid_id
+        for available_id in available_ids:
+            if available_id.startswith(prefix + '_'):
+                return available_id
+        
+        # Try fuzzy matching (simple edit distance)
+        best_match = None
+        best_score = float('inf')
+        
+        for available_id in available_ids:
+            # Simple character difference scoring
+            score = abs(len(invalid_id) - len(available_id))
+            if invalid_id.lower() in available_id.lower() or available_id.lower() in invalid_id.lower():
+                score -= 10  # Bonus for substring match
+            
+            if score < best_score:
+                best_score = score
+                best_match = available_id
+        
+        # Only return if it's a reasonable match
+        if best_score < 5:  # Arbitrary threshold
+            return best_match
+        
+        return None
+    
+    def _find_best_source_match(self, insight_text: str, available_ids: List[str]) -> Optional[str]:
+        """Find best SOURCE_ID match using enhanced content analysis"""
+        if not hasattr(self, 'source_mapping'):
+            return None
+        
+        best_match_id = None
+        best_match_score = 0
+        
+        insight_lower = insight_text.lower()
+        
+        for source_id in available_ids:
+            source_data = self.source_mapping.get(source_id, {})
+            source_text = f"{source_data.get('title', '')} {source_data.get('content', '')}".lower()
+            
+            # Enhanced matching algorithm
+            matching_score = 0
+            
+            # 1. Keyword matching
+            insight_words = set(word for word in insight_lower.split() if len(word) > 3)
+            for word in insight_words:
+                if word in source_text:
+                    matching_score += 1
+            
+            # 2. Vendor name matching (higher weight)
+            for vendor in self.key_vendors:
+                if vendor.lower() in insight_lower and vendor.lower() in source_text:
+                    matching_score += 3
+            
+            # 3. Title similarity bonus
+            source_title = source_data.get('title', '').lower()
+            if source_title:
+                common_words = set(insight_lower.split()) & set(source_title.split())
+                matching_score += len(common_words) * 2
+            
+            if matching_score > best_match_score:
+                best_match_score = matching_score
+                best_match_id = source_id
+        
+        # Only return if we have a reasonable match
+        if best_match_score >= 2:  # Minimum threshold
+            return best_match_id
+        
+        return None
+    
+    def _validate_and_inject_source_ids(self, result: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate SOURCE_IDs in insights and inject them if missing"""
+        import re
+        
+        if not hasattr(self, 'source_mapping') or not self.source_mapping:
+            logger.warning("No source mapping available for SOURCE_ID injection")
+            return result
+        
+        # Get list of available SOURCE_IDs
+        available_source_ids = list(self.source_mapping.keys())
+        logger.info(f"Available SOURCE_IDs: {available_source_ids}")
+        
+        def inject_source_id_if_missing(insight_text: str) -> str:
+            """Inject SOURCE_ID if missing from insight"""
+            # Check if insight already has SOURCE_ID
+            existing_source_ids = re.findall(r'\[([^]]+)\]', insight_text)
+            if existing_source_ids:
+                # Validate existing SOURCE_IDs
+                for source_id in existing_source_ids:
+                    if source_id in available_source_ids:
+                        logger.info(f"✅ Valid SOURCE_ID found: {source_id}")
+                        return insight_text
+                    else:
+                        logger.warning(f"⚠️ Invalid SOURCE_ID found: {source_id}")
+                        # Try to fix invalid SOURCE_ID using enhanced matching
+                        fixed_id = self._fix_invalid_source_id(source_id, available_source_ids)
+                        if fixed_id:
+                            fixed_insight = insight_text.replace(f'[{source_id}]', f'[{fixed_id}]')
+                            logger.info(f"🔧 Fixed SOURCE_ID: {source_id} -> {fixed_id}")
+                            return fixed_insight
+                return insight_text
+            
+            # No SOURCE_ID found - need to inject one
+            logger.warning(f"⚠️ Missing SOURCE_ID in insight: '{insight_text[:80]}...'")
+            
+            # Try intelligent matching using enhanced algorithm
+            best_match_id = self._find_best_source_match(insight_text, available_source_ids)
+            
+            if best_match_id:
+                injected_insight = f"{insight_text.rstrip()} [{best_match_id}]"
+                logger.info(f"🎯 Intelligently injected SOURCE_ID: {best_match_id}")
+                return injected_insight
+            
+            # Fallback to first available SOURCE_ID
+            if available_source_ids:
+                fallback_id = available_source_ids[0]
+                injected_insight = f"{insight_text.rstrip()} [{fallback_id}]"
+                logger.warning(f"⚠️ Fallback SOURCE_ID injection: {fallback_id}")
+                return injected_insight
+            
+            logger.error(f"❌ Cannot inject SOURCE_ID - no sources available")
+            return insight_text
+        
+        # Process insights in pricing_intelligence_summary
+        if "pricing_intelligence_summary" in result:
+            summary = result["pricing_intelligence_summary"]
+            
+            # Process critical_insights
+            if "critical_insights" in summary and isinstance(summary["critical_insights"], list):
+                for i, insight in enumerate(summary["critical_insights"]):
+                    if isinstance(insight, str):
+                        summary["critical_insights"][i] = inject_source_id_if_missing(insight)
+            
+            # Process strategic_recommendations
+            if "strategic_recommendations" in summary and isinstance(summary["strategic_recommendations"], list):
+                for i, recommendation in enumerate(summary["strategic_recommendations"]):
+                    if isinstance(recommendation, str):
+                        summary["strategic_recommendations"][i] = inject_source_id_if_missing(recommendation)
+            
+            # Process automated_action_recommendations
+            if "automated_action_recommendations" in summary and isinstance(summary["automated_action_recommendations"], list):
+                for action in summary["automated_action_recommendations"]:
+                    if isinstance(action, dict) and "action_title" in action:
+                        action["action_title"] = inject_source_id_if_missing(action["action_title"])
+                    if isinstance(action, dict) and "technical_signal" in action:
+                        action["technical_signal"] = inject_source_id_if_missing(action["technical_signal"])
+        
+        return result
+    
     def _add_confidence_to_insights(self, result: Dict[str, Any]) -> Dict[str, Any]:
         """Add confidence calculations to all insights in the holistic summary"""
         import re
@@ -909,6 +1301,11 @@ CONTENT TO ANALYZE:
                     if isinstance(insight, str):
                         # Extract source IDs from insight text
                         source_ids = re.findall(r'\[([^]]+)\]', insight)
+                        
+                        # Debug logging for Lenovo insights
+                        if 'lenovo' in insight.lower():
+                            logger.info(f"🔍 LENOVO INSIGHT DETECTED: {insight[:100]}...")
+                            logger.info(f"   📋 Source IDs: {source_ids}")
                         
                         # Calculate confidence
                         confidence_data = self._calculate_insight_confidence(insight, source_ids)
@@ -933,6 +1330,11 @@ CONTENT TO ANALYZE:
                     if isinstance(recommendation, str):
                         # Extract source IDs from recommendation text
                         source_ids = re.findall(r'\[([^]]+)\]', recommendation)
+                        
+                        # Debug logging for Lenovo recommendations
+                        if 'lenovo' in recommendation.lower():
+                            logger.info(f"🔍 LENOVO RECOMMENDATION DETECTED: {recommendation[:100]}...")
+                            logger.info(f"   📋 Source IDs: {source_ids}")
                         
                         # Calculate confidence (recommendations typically have medium confidence)
                         confidence_data = self._calculate_insight_confidence(recommendation, source_ids)
@@ -992,32 +1394,20 @@ CONTENT TO ANALYZE:
             "pricing_analyst": {
                 "role": "Pricing Analyst",
                 "focus": "SKU-level margin impacts and vendor pricing changes",
-                "summary": "Limited pricing intelligence available. Recommend direct vendor portal monitoring for critical updates.",
-                "key_insights": [
-                    "🔴 System Alert - Direct vendor verification recommended for pricing updates",
-                    "🟡 Monitor key vendor portals: Dell, Microsoft, Cisco for manual price checks",
-                    "🟢 Verify distributor communications from TD Synnex and Ingram Micro"
-                ]
+                "summary": "Pricing intelligence system encountered processing issues. No actionable insights generated.",
+                "key_insights": []
             },
             "procurement_manager": {
                 "role": "Procurement Manager", 
                 "focus": "Supply chain risks and vendor relationship changes",
-                "summary": "Supply chain intelligence limited. Direct supplier contact recommended for critical items.",
-                "key_insights": [
-                    "🔴 System Alert - Contact key suppliers directly for inventory status",
-                    "🟡 Verify availability with distributors for high-demand SKUs",
-                    "🟢 Check vendor portals for fulfillment and shipping updates"
-                ]
+                "summary": "Supply chain intelligence system encountered processing issues. No actionable insights generated.",
+                "key_insights": []
             },
             "bi_strategy": {
                 "role": "BI Strategy Analyst",
                 "focus": "Market intelligence and competitive positioning", 
-                "summary": "Market intelligence gathering limited. Monitor industry publications for strategic updates.",
-                "key_insights": [
-                    "🔴 System Alert - Review CRN, ChannelE2E for market developments",
-                    "🟡 Monitor competitor announcements and vendor strategic updates",
-                    "🟢 Check vendor investor relations pages for partnership news"
-                ]
+                "summary": "Market intelligence system encountered processing issues. No actionable insights generated.",
+                "key_insights": []
             }
         }
         
@@ -1110,6 +1500,9 @@ CONTENT TO ANALYZE:
                 logger.error("Generated summary failed validation")
                 return self._generate_holistic_fallback_summary()
 
+            # Validate and inject SOURCE_IDs if missing
+            result = self._validate_and_inject_source_ids(result)
+            
             # Add confidence calculations to insights
             result = self._add_confidence_to_insights(result)
             

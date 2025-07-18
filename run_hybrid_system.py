@@ -265,12 +265,16 @@ async def analyze_content(all_content: Dict[str, Any], config: Dict[str, Any]):
         # Initialize hybrid summarizer
         summarizer = HybridGPTSummarizer(debug=True)
         
-        # Generate comprehensive analysis
-        summary = await asyncio.to_thread(
-            summarizer.generate_summary,
-            all_content,
-            config
-        )
+        # Generate comprehensive analysis (Python 3.6 compatible)
+        import concurrent.futures
+        loop = asyncio.get_event_loop()
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            summary = await loop.run_in_executor(
+                executor,
+                summarizer.generate_summary,
+                all_content,
+                config
+            )
         
         # Log results for holistic structure
         if 'pricing_intelligence_summary' in summary:
@@ -289,15 +293,16 @@ async def analyze_content(all_content: Dict[str, Any], config: Dict[str, Any]):
             logger.info(f"✅ Analysis completed with {role_count} perspectives")
             logger.info(f"📊 Generated {insights_count} actionable insights")
         
-        return summary
+        # Return both summary and the summarizer instance for source mapping
+        return summary, summarizer
         
     except Exception as e:
         logger.error(f"❌ Analysis failed: {e}")
         from summarizer.gpt_summarizer_hybrid import HybridGPTSummarizer
         summarizer = HybridGPTSummarizer()
-        return summarizer._generate_fallback_summary()
+        return summarizer._generate_fallback_summary(), summarizer
 
-async def generate_report(summary: Dict[str, Any], all_content: Dict[str, Any], config: Dict[str, Any]):
+async def generate_report(summary: Dict[str, Any], all_content: Dict[str, Any], config: Dict[str, Any], summarizer=None):
     """Generate enhanced HTML report"""
     logger.info("")
     logger.info("📄 STEP 3: Creating Enhanced Report")
@@ -368,11 +373,20 @@ async def generate_report(summary: Dict[str, Any], all_content: Dict[str, Any], 
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         output_file = f"output/ultrathink_hybrid_{timestamp}.html"
         
+        # Use summarizer's source mapping if available, otherwise fall back to original content
+        source_mapping = None
+        if summarizer and hasattr(summarizer, 'source_mapping'):
+            source_mapping = summarizer.source_mapping
+            logger.info(f"📋 Using GPT summarizer source mapping with {len(source_mapping)} items")
+        else:
+            logger.info("📋 No summarizer source mapping available, using original content")
+        
         html_content = generator.generate_html_report(
             insights=insights,
             all_content=sum(all_content.values(), []),
             vendor_analysis=vendor_analysis,
-            config=config
+            config=config,
+            source_mapping=source_mapping
         )
         
         # Save report
@@ -417,10 +431,10 @@ async def main():
         all_content, config = await fetch_content()
         
         # Step 2: Analyze content
-        summary = await analyze_content(all_content, config)
+        summary, summarizer = await analyze_content(all_content, config)
         
         # Step 3: Generate reports
-        html_report = await generate_report(summary, all_content, config)
+        html_report = await generate_report(summary, all_content, config, summarizer)
         json_data = await save_analysis_data(summary)
         
         logger.info("")
@@ -437,10 +451,14 @@ async def main():
         return None
 
 if __name__ == "__main__":
-    # Run the hybrid system
-    result = asyncio.run(main())
-    
-    if result:
-        print("✅ System completed! Check output folder for results.")
-    else:
-        print("❌ System failed. Check logs for details.")
+    # Run the hybrid system (Python 3.6 compatible)
+    loop = asyncio.get_event_loop()
+    try:
+        result = loop.run_until_complete(main())
+        
+        if result:
+            print("✅ System completed! Check output folder for results.")
+        else:
+            print("❌ System failed. Check logs for details.")
+    finally:
+        loop.close()

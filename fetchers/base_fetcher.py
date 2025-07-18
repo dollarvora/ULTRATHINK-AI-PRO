@@ -40,6 +40,25 @@ class BaseFetcher(ABC):
         self.economic_keywords = config['keywords'].get('economic_conditions', [])
         self.tech_trend_keywords = config['keywords'].get('technology_trends', [])
         
+        # ENHANCED: MSP and Security Intelligence Keywords for better scoring
+        self.msp_keywords = [
+            'msp', 'managed service provider', 'service provider', 'what\'s your experience with',
+            'experience with', 'thoughts on', 'anyone using', 'has anyone used', 'opinions on',
+            'server procurement', 'storage evaluation', 'vendor experience', 'vendor comparison',
+            'procurement decision', 'purchasing decision', 'vendor selection', 'product evaluation',
+            'hardware evaluation', 'software evaluation', 'solution evaluation', 'pilot project',
+            'proof of concept', 'poc', 'vendor trial', 'demo', 'evaluation period'
+        ]
+        
+        self.security_keywords = [
+            'security performance', 'security issues', 'security problems', 'security challenges',
+            'defender issues', 'defender problems', 'defender performance', 'security adoption',
+            'security deployment', 'security implementation', 'security migration', 'security upgrade',
+            'endpoint security', 'antivirus', 'anti-malware', 'threat protection', 'vulnerability',
+            'security solution', 'security software', 'security tool', 'security platform',
+            'makes me suffer', 'frustrated with', 'issues with', 'problems with', 'struggling with'
+        ]
+        
         # Set vendors before compiling patterns
         self.vendors = self._flatten_vendors(config.get('vendors', {}))
         
@@ -60,7 +79,15 @@ class BaseFetcher(ABC):
             self._tech_trend_pattern = self._compile_pattern_list(self.tech_trend_keywords)
             self._vendor_pattern = self._compile_pattern_list(self.vendors)
             
-            self.logger.info(f"✅ Compiled {len(self.keywords + self.urgency_keywords + self.price_point_keywords + self.competitive_keywords + self.financial_keywords + self.industry_keywords + self.economic_keywords + self.tech_trend_keywords)} keyword patterns for enterprise performance")
+            # ENHANCED: Compile MSP and Security patterns for better scoring
+            self._msp_pattern = self._compile_pattern_list(self.msp_keywords)
+            self._security_pattern = self._compile_pattern_list(self.security_keywords)
+            
+            total_keywords = len(self.keywords + self.urgency_keywords + self.price_point_keywords + 
+                               self.competitive_keywords + self.financial_keywords + self.industry_keywords + 
+                               self.economic_keywords + self.tech_trend_keywords + self.msp_keywords + 
+                               self.security_keywords)
+            self.logger.info(f"✅ Compiled {total_keywords} keyword patterns for enterprise performance")
             
         except Exception as e:
             self.logger.warning(f"⚠️ Regex compilation failed, falling back to string matching: {e}")
@@ -74,6 +101,8 @@ class BaseFetcher(ABC):
             self._economic_pattern = None
             self._tech_trend_pattern = None
             self._vendor_pattern = None
+            self._msp_pattern = None
+            self._security_pattern = None
 
     def _compile_pattern_list(self, keywords: List[str]) -> Pattern:
         """Compile a list of keywords into a single optimized regex pattern"""
@@ -178,8 +207,12 @@ class BaseFetcher(ABC):
                 urgency_factor_score * 0.10
             )
             
+            # ENHANCED: Business Context Scoring - MSP and Security Intelligence Boost
+            business_context_boost = self._calculate_business_context_boost(text, text_lower)
+            revenue_impact_score += business_context_boost
+            
             # Enhanced logging for high-scoring or business critical content
-            if revenue_impact_score >= 5.0 or any(term in text_lower for term in ['vcsp', 'program shutdown', 'partner program', 'thousands of partners']):
+            if revenue_impact_score >= 5.0 or business_context_boost > 0 or any(term in text_lower for term in ['vcsp', 'program shutdown', 'partner program', 'thousands of partners']):
                 self.logger.info(f"🎯 REVENUE IMPACT SCORING - Text: '{text[:100]}...'")
                 self.logger.info(f"💰 Total Revenue Impact Score: {revenue_impact_score:.1f}")
                 self.logger.info(f"   📊 Immediate Revenue (30%): {immediate_revenue_score:.1f}")
@@ -187,6 +220,8 @@ class BaseFetcher(ABC):
                 self.logger.info(f"   ⚔️ Competitive Advantage (20%): {competitive_advantage_score:.1f}")
                 self.logger.info(f"   🎯 Strategic Value (15%): {strategic_value_score:.1f}")
                 self.logger.info(f"   🚨 Urgency Factor (10%): {urgency_factor_score:.1f}")
+                if business_context_boost > 0:
+                    self.logger.info(f"   🚀 Business Context Boost: +{business_context_boost:.1f}")
             
             return revenue_impact_score
         else:
@@ -294,6 +329,84 @@ class BaseFetcher(ABC):
                 score += 2.0
         
         return min(score, 10.0)  # Cap at 10
+
+    def _calculate_business_context_boost(self, text: str, text_lower: str) -> float:
+        """Business Context Scoring - MSP and Security Intelligence Boost"""
+        boost_score = 0.0
+        
+        # MSP Procurement Intelligence Boost
+        if self._msp_pattern:
+            msp_matches = self._msp_pattern.findall(text)
+            if msp_matches:
+                boost_score += 2.0  # Significant boost for MSP content
+                self.logger.info(f"🎯 MSP CONTENT BOOST: +2.0 for MSP intelligence: '{text[:80]}...'")
+        
+        # Security Software Intelligence Boost
+        if self._security_pattern:
+            security_matches = self._security_pattern.findall(text)
+            if security_matches:
+                boost_score += 1.5  # Boost for security content
+                self.logger.info(f"🎯 SECURITY CONTENT BOOST: +1.5 for security intelligence: '{text[:80]}...'")
+        
+        # Vendor Experience Pattern Boost
+        vendor_experience_patterns = [
+            r'what\'s your experience with\s+(\w+)',
+            r'experience with\s+(\w+)',
+            r'thoughts on\s+(\w+)',
+            r'anyone using\s+(\w+)',
+            r'has anyone used\s+(\w+)',
+            r'opinions on\s+(\w+)'
+        ]
+        
+        for pattern in vendor_experience_patterns:
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                boost_score += 1.5  # Boost for vendor experience discussions
+                self.logger.info(f"🎯 VENDOR EXPERIENCE BOOST: +1.5 for vendor experience: '{text[:80]}...'")
+                break
+        
+        # Server/Storage Procurement Boost
+        server_storage_patterns = [
+            r'server\s+procurement',
+            r'storage\s+evaluation',
+            r'hardware\s+evaluation',
+            r'server\s+(.+)\s+storage',
+            r'lenovo\s+(.+)\s+server',
+            r'dell\s+(.+)\s+server',
+            r'hp\s+(.+)\s+server'
+        ]
+        
+        for pattern in server_storage_patterns:
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                boost_score += 1.0  # Boost for server/storage discussions
+                self.logger.info(f"🎯 SERVER/STORAGE BOOST: +1.0 for procurement intelligence: '{text[:80]}...'")
+                break
+        
+        # MSP Subreddit Context Boost
+        if 'r/msp' in text_lower or '/r/msp' in text_lower:
+            boost_score += 1.0  # Additional boost for MSP subreddit content
+            self.logger.info(f"🎯 MSP SUBREDDIT BOOST: +1.0 for MSP context: '{text[:80]}...'")
+        
+        # Security Performance Issues Boost
+        performance_issue_patterns = [
+            r'makes me suffer',
+            r'frustrated with',
+            r'issues with',
+            r'problems with',
+            r'struggling with',
+            r'defender\s+(.+)\s+issues',
+            r'defender\s+(.+)\s+problems'
+        ]
+        
+        for pattern in performance_issue_patterns:
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                boost_score += 1.0  # Boost for security performance issues
+                self.logger.info(f"🎯 SECURITY PERFORMANCE BOOST: +1.0 for performance issues: '{text[:80]}...'")
+                break
+        
+        return min(boost_score, 3.0)  # Cap boost at 3.0 to maintain balance
 
     def _calculate_relevance_score_fallback(self, text: str) -> float:
         """Fallback scoring method using string matching"""
