@@ -46,7 +46,9 @@ def load_config():
                     "GovernmentContracting", "HigherEducation", "Manufacturing",
                     # NEW: Enterprise pricing-focused subreddits
                     "k12sysadmin", "Office365", "DataHoarder", "Intune", "HyperV",
-                    "MicrosoftTeams", "SCCM", "PowerBI", "sharepoint"
+                    "MicrosoftTeams", "SCCM", "PowerBI", "sharepoint",
+                    # NEW: Cloud security intelligence subreddits
+                    "cloudsecurity", "kubernetes"
                 ],
                 "post_limit": 50,
                 "comment_limit": 20
@@ -54,11 +56,43 @@ def load_config():
             "google": {
                 "enabled": True,
                 "queries": [
+                    # Original enterprise pricing queries
                     f"enterprise software pricing increase {datetime.now().year}",
                     "cybersecurity vendor price changes",
                     "IT distributor margin compression",
                     "cloud pricing updates AWS Azure",
-                    "hardware vendor pricing announcements"
+                    "hardware vendor pricing announcements",
+                    
+                    # NEW: Cloud Security Pricing Intelligence Queries
+                    f"CNAPP pricing increase {datetime.now().year}",
+                    f"cloud security platform pricing {datetime.now().year}",
+                    "CNAPP vendor pricing doubled overnight",
+                    "cloud security pricing overhaul",
+                    "container security pricing increase",
+                    "Kubernetes security pricing change",
+                    
+                    # Cloud Security Market Segments
+                    f"CSPM pricing increase {datetime.now().year}",
+                    f"CWPP pricing change {datetime.now().year}",
+                    f"CIEM pricing overhaul {datetime.now().year}",
+                    "DevSecOps pricing increase",
+                    "shift-left security pricing",
+                    "cloud security posture management pricing",
+                    "cloud workload protection pricing",
+                    "runtime security pricing increase",
+                    "vulnerability management pricing",
+                    
+                    # Major Cloud Security Vendors
+                    "Wiz pricing increase announcement",
+                    "Prisma Cloud pricing change",
+                    "Aqua Security pricing increase",
+                    "Snyk pricing overhaul",
+                    "Lacework pricing change",
+                    "Orca Security pricing increase",
+                    "CrowdStrike cloud security pricing",
+                    "Palo Alto Networks cloud security pricing",
+                    "Zscaler cloud security pricing",
+                    "SentinelOne cloud security pricing"
                 ],
                 "results_per_query": 10,
                 "date_restriction": "d7"
@@ -146,6 +180,19 @@ def load_config():
                 "automation pricing", "RPA pricing", "workflow automation", "process automation",
                 "data analytics pricing", "big data", "business intelligence", "data lake",
                 "IoT pricing", "edge computing", "5G pricing", "network modernization"
+            ],
+            "ma_intelligence": [
+                "post-acquisition audit", "post-acquisition audits", "post-acquisition licensing",
+                "post-acquisition monetization", "post-acquisition enforcement", "post-acquisition compliance",
+                "license enforcement", "license audits", "license compliance", "license review",
+                "auditing organizations", "auditing customers", "auditing clients", "customer audit",
+                "broadcom vmware audit", "vmware by broadcom audit", "broadcom audit",
+                "acquisition monetization", "acquisition strategy", "acquisition integration",
+                "merger monetization", "merger integration", "merger audit", "merger compliance",
+                "begins auditing", "starts auditing", "conducting audits", "audit process",
+                "compliance audit", "usage audit", "license verification", "license reconciliation",
+                "licensing overhaul", "licensing changes", "licensing model", "licensing enforcement",
+                "forced migration", "mandatory migration", "compliance migration", "license migration"
             ]
         },
         "vendors": {
