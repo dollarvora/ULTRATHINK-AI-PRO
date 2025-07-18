@@ -128,6 +128,8 @@ class TestCompanyAliasMatcher(unittest.TestCase):
         self.assertEqual(len(result_none.matched_companies), 0)
         self.assertEqual(result_empty.total_matches, 0)
         self.assertEqual(result_none.total_matches, 0)
+        self.assertEqual(len(result_empty.acquisition_mappings), 0)
+        self.assertEqual(len(result_none.acquisition_mappings), 0)
     
     def test_confidence_scoring(self):
         """Test confidence scoring mechanism"""
@@ -170,6 +172,60 @@ class TestCompanyAliasMatcher(unittest.TestCase):
         self.assertIn('top_aliases', stats)
         self.assertGreater(stats['total_companies'], 0)
         self.assertGreater(stats['total_aliases'], 0)
+    
+    def test_acquisition_intelligence(self):
+        """Test acquisition intelligence functionality"""
+        # Test text with acquired companies
+        acquisition_text = "Google acquired Wiz for $32 billion, while VMware is now owned by Broadcom"
+        
+        # Get acquisition intelligence
+        acquisition_intel = self.matcher.get_acquisition_intelligence(acquisition_text)
+        
+        self.assertIn('direct_acquisitions', acquisition_intel)
+        self.assertIn('parent_companies', acquisition_intel)
+        self.assertIn('acquisition_chains', acquisition_intel)
+    
+    def test_emerging_vendor_detection(self):
+        """Test detection of emerging 2024-2025 vendors"""
+        emerging_text = "Anthropic's Claude AI competes with OpenAI's ChatGPT, while Wiz provides cloud security"
+        result = self.matcher.find_companies_in_text(emerging_text)
+        
+        # Should detect new AI companies
+        expected_emerging = {'anthropic', 'openai', 'wiz'}
+        detected_vendors = result.matched_companies
+        
+        # Should detect at least 2 of the 3 emerging vendors
+        overlap = detected_vendors.intersection(expected_emerging)
+        self.assertGreaterEqual(len(overlap), 2, 
+                              f"Expected emerging vendors, detected: {detected_vendors}")
+    
+    def test_merger_acquisition_context(self):
+        """Test M&A context detection and mapping"""
+        ma_text = "Following Broadcom's VMware acquisition, customers report 300% cost increases"
+        result = self.matcher.find_companies_in_text(ma_text)
+        
+        # Should detect both companies
+        self.assertIn('vmware', result.matched_companies)
+        self.assertIn('broadcom', result.matched_companies)
+        
+        # Should have higher confidence due to M&A context
+        self.assertGreater(result.confidence_score, 0.4)
+    
+    def test_enhanced_confidence_scoring(self):
+        """Test enhanced confidence scoring with multiple factors"""
+        # Rich text with pricing details and multiple vendors
+        rich_text = """
+        Microsoft Office 365 pricing increased 15% affecting Enterprise customers.
+        VMware vSphere licensing costs surge following Broadcom acquisition.
+        AWS EC2 instances see regional pricing adjustments across multiple zones.
+        """
+        result = self.matcher.find_companies_in_text(rich_text)
+        
+        # Should have high confidence due to rich context
+        self.assertGreater(result.confidence_score, 0.55)
+        
+        # Should detect multiple vendors
+        self.assertGreaterEqual(len(result.matched_companies), 3)
 
 
 class TestCompanyAliasMatcherIntegration(unittest.TestCase):
