@@ -1,0 +1,641 @@
+{
+  "overall_accuracy": 0.875,
+  "total_tests": 24,
+  "total_correct": 21,
+  "category_results": {
+    "AI/ML Vendors": {
+      "passed": 1,
+      "total": 1
+    },
+    "Cybersecurity Acquisitions": {
+      "passed": 0,
+      "total": 1
+    },
+    "AI Infrastructure": {
+      "passed": 1,
+      "total": 1
+    },
+    "Security M&A": {
+      "passed": 0,
+      "total": 1
+    },
+    "Enterprise AI": {
+      "passed": 1,
+      "total": 1
+    },
+    "Traditional SaaS": {
+      "passed": 1,
+      "total": 1
+    },
+    "Infrastructure M&A": {
+      "passed": 1,
+      "total": 1
+    },
+    "Cybersecurity": {
+      "passed": 1,
+      "total": 1
+    },
+    "Cloud Infrastructure": {
+      "passed": 1,
+      "total": 1
+    },
+    "Network Security": {
+      "passed": 1,
+      "total": 1
+    },
+    "IT Distribution": {
+      "passed": 1,
+      "total": 1
+    },
+    "Cloud Distribution": {
+      "passed": 1,
+      "total": 1
+    },
+    "Government Channel": {
+      "passed": 1,
+      "total": 1
+    },
+    "Enterprise Mobility": {
+      "passed": 1,
+      "total": 1
+    },
+    "Enterprise Storage": {
+      "passed": 1,
+      "total": 1
+    },
+    "Storage M&A": {
+      "passed": 0,
+      "total": 1
+    },
+    "Hybrid Cloud": {
+      "passed": 1,
+      "total": 1
+    },
+    "Multi-Cloud Storage": {
+      "passed": 1,
+      "total": 1
+    },
+    "Zero Trust Security": {
+      "passed": 1,
+      "total": 1
+    },
+    "Identity Management": {
+      "passed": 1,
+      "total": 1
+    },
+    "Security Analytics": {
+      "passed": 1,
+      "total": 1
+    },
+    "Migration Scenario": {
+      "passed": 1,
+      "total": 1
+    },
+    "Multi-Vendor Security": {
+      "passed": 1,
+      "total": 1
+    },
+    "Cloud Competition": {
+      "passed": 1,
+      "total": 1
+    }
+  },
+  "detailed_results": [
+    {
+      "category": "AI/ML Vendors",
+      "text_preview": "Anthropic's Claude AI competes with OpenAI's ChatGPT and GPT-4 models",
+      "expected": [
+        "anthropic",
+        "openai"
+      ],
+      "detected": [
+        "anthropic",
+        "openai"
+      ],
+      "intersection": [
+        "anthropic",
+        "openai"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.2758736842105263,
+      "passed": true,
+      "acquisition_mappings": {}
+    },
+    {
+      "category": "Cybersecurity Acquisitions",
+      "text_preview": "Wiz cloud security platform acquired by Google for $32 billion",
+      "expected": [
+        "google cloud",
+        "wiz"
+      ],
+      "detected": [
+        "wiz"
+      ],
+      "intersection": [
+        "wiz"
+      ],
+      "precision": 1.0,
+      "recall": 0.5,
+      "f1_score": 0.6666666666666666,
+      "confidence": 0.23693684210526317,
+      "passed": false,
+      "acquisition_mappings": {
+        "wiz": "google cloud"
+      }
+    },
+    {
+      "category": "AI Infrastructure",
+      "text_preview": "NVIDIA H100 GPUs power CoreWeave's AI cloud infrastructure",
+      "expected": [
+        "coreweave",
+        "nvidia"
+      ],
+      "detected": [
+        "coreweave",
+        "nvidia"
+      ],
+      "intersection": [
+        "coreweave",
+        "nvidia"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.2130236842105263,
+      "passed": true,
+      "acquisition_mappings": {}
+    },
+    {
+      "category": "Security M&A",
+      "text_preview": "Sophos acquired Secureworks for $859 million to expand XDR capabilities",
+      "expected": [
+        "secureworks",
+        "sophos"
+      ],
+      "detected": [
+        "sophos"
+      ],
+      "intersection": [
+        "sophos"
+      ],
+      "precision": 1.0,
+      "recall": 0.5,
+      "f1_score": 0.6666666666666666,
+      "confidence": 0.2873368421052631,
+      "passed": false,
+      "acquisition_mappings": {
+        "secureworks": "sophos"
+      }
+    },
+    {
+      "category": "Enterprise AI",
+      "text_preview": "ServiceNow acquired Moveworks for $2.85 billion to enhance AI automation",
+      "expected": [
+        "moveworks",
+        "servicenow"
+      ],
+      "detected": [
+        "moveworks",
+        "servicenow"
+      ],
+      "intersection": [
+        "moveworks",
+        "servicenow"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.2926736842105263,
+      "passed": true,
+      "acquisition_mappings": {
+        "moveworks": "servicenow"
+      }
+    },
+    {
+      "category": "Traditional SaaS",
+      "text_preview": "Microsoft Office 365 pricing increased 15% affecting Enterprise customers",
+      "expected": [
+        "microsoft"
+      ],
+      "detected": [
+        "microsoft"
+      ],
+      "intersection": [
+        "microsoft"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.24853684210526317,
+      "passed": true,
+      "acquisition_mappings": {}
+    },
+    {
+      "category": "Infrastructure M&A",
+      "text_preview": "VMware vSphere licensing costs surge following Broadcom acquisition",
+      "expected": [
+        "broadcom",
+        "vmware"
+      ],
+      "detected": [
+        "broadcom",
+        "vmware"
+      ],
+      "intersection": [
+        "broadcom",
+        "vmware"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.5184236842105263,
+      "passed": true,
+      "acquisition_mappings": {
+        "vmware": "broadcom"
+      }
+    },
+    {
+      "category": "Cybersecurity",
+      "text_preview": "CrowdStrike Falcon EDR platform adds new threat detection capabilities",
+      "expected": [
+        "crowdstrike"
+      ],
+      "detected": [
+        "crowdstrike"
+      ],
+      "intersection": [
+        "crowdstrike"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.2,
+      "passed": true,
+      "acquisition_mappings": {}
+    },
+    {
+      "category": "Cloud Infrastructure",
+      "text_preview": "AWS EC2 instances see regional pricing adjustments across availability zones",
+      "expected": [
+        "aws"
+      ],
+      "detected": [
+        "aws",
+        "zones"
+      ],
+      "intersection": [
+        "aws"
+      ],
+      "precision": 0.5,
+      "recall": 1.0,
+      "f1_score": 0.6666666666666666,
+      "confidence": 0.3400736842105263,
+      "passed": true,
+      "acquisition_mappings": {}
+    },
+    {
+      "category": "Network Security",
+      "text_preview": "Cisco Meraki wireless solutions integrate with Umbrella cloud security",
+      "expected": [
+        "cisco"
+      ],
+      "detected": [
+        "cisco"
+      ],
+      "intersection": [
+        "cisco"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.3467368421052632,
+      "passed": true,
+      "acquisition_mappings": {
+        "meraki": "cisco",
+        "umbrella": "cisco"
+      }
+    },
+    {
+      "category": "IT Distribution",
+      "text_preview": "TD Synnex reports strong quarterly results from Tech Data integration",
+      "expected": [
+        "td synnex"
+      ],
+      "detected": [
+        "td synnex"
+      ],
+      "intersection": [
+        "td synnex"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.2861368421052632,
+      "passed": true,
+      "acquisition_mappings": {
+        "tech data": "td synnex"
+      }
+    },
+    {
+      "category": "Cloud Distribution",
+      "text_preview": "Ingram Micro expands cloud marketplace with new vendor partnerships",
+      "expected": [
+        "ingram micro"
+      ],
+      "detected": [
+        "ingram micro"
+      ],
+      "intersection": [
+        "ingram micro"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.24493684210526315,
+      "passed": true,
+      "acquisition_mappings": {}
+    },
+    {
+      "category": "Government Channel",
+      "text_preview": "CDW Government wins major federal contract for Microsoft Enterprise Agreement",
+      "expected": [
+        "cdw",
+        "microsoft"
+      ],
+      "detected": [
+        "cdw",
+        "microsoft"
+      ],
+      "intersection": [
+        "cdw",
+        "microsoft"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.2,
+      "passed": true,
+      "acquisition_mappings": {}
+    },
+    {
+      "category": "Enterprise Mobility",
+      "text_preview": "SHI International partners with Jamf for enterprise mobile device management",
+      "expected": [
+        "jamf",
+        "shi"
+      ],
+      "detected": [
+        "jamf",
+        "shi"
+      ],
+      "intersection": [
+        "jamf",
+        "shi"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.2,
+      "passed": true,
+      "acquisition_mappings": {}
+    },
+    {
+      "category": "Enterprise Storage",
+      "text_preview": "Pure Storage FlashArray performance improvements announced at Pure//Accelerate",
+      "expected": [
+        "pure storage"
+      ],
+      "detected": [
+        "pure storage"
+      ],
+      "intersection": [
+        "pure storage"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.2,
+      "passed": true,
+      "acquisition_mappings": {}
+    },
+    {
+      "category": "Storage M&A",
+      "text_preview": "Lenovo acquiring Infinidat for $1.6 billion to expand storage portfolio",
+      "expected": [
+        "infinidat",
+        "lenovo"
+      ],
+      "detected": [
+        "lenovo"
+      ],
+      "intersection": [
+        "lenovo"
+      ],
+      "precision": 1.0,
+      "recall": 0.5,
+      "f1_score": 0.6666666666666666,
+      "confidence": 0.2873368421052631,
+      "passed": false,
+      "acquisition_mappings": {
+        "infinidat": "lenovo"
+      }
+    },
+    {
+      "category": "Hybrid Cloud",
+      "text_preview": "Nutanix Cloud Platform integrates with HPE GreenLake edge services",
+      "expected": [
+        "hpe",
+        "nutanix"
+      ],
+      "detected": [
+        "hp",
+        "hpe",
+        "nutanix"
+      ],
+      "intersection": [
+        "hpe",
+        "nutanix"
+      ],
+      "precision": 0.6666666666666666,
+      "recall": 1.0,
+      "f1_score": 0.8,
+      "confidence": 0.4038105263157895,
+      "passed": true,
+      "acquisition_mappings": {
+        "greenlake": "hpe"
+      }
+    },
+    {
+      "category": "Multi-Cloud Storage",
+      "text_preview": "NetApp ONTAP cloud storage supports AWS, Azure, and Google Cloud",
+      "expected": [
+        "aws",
+        "google cloud",
+        "microsoft",
+        "netapp"
+      ],
+      "detected": [
+        "aws",
+        "google cloud",
+        "microsoft",
+        "netapp"
+      ],
+      "intersection": [
+        "aws",
+        "google cloud",
+        "microsoft",
+        "netapp"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.2823473684210526,
+      "passed": true,
+      "acquisition_mappings": {}
+    },
+    {
+      "category": "Zero Trust Security",
+      "text_preview": "Zscaler Zero Trust Exchange platform adds new DLP capabilities",
+      "expected": [
+        "zscaler"
+      ],
+      "detected": [
+        "zscaler"
+      ],
+      "intersection": [
+        "zscaler"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.2,
+      "passed": true,
+      "acquisition_mappings": {}
+    },
+    {
+      "category": "Identity Management",
+      "text_preview": "Okta Identity Cloud integrates with Microsoft Azure Active Directory",
+      "expected": [
+        "microsoft",
+        "okta"
+      ],
+      "detected": [
+        "microsoft",
+        "okta"
+      ],
+      "intersection": [
+        "microsoft",
+        "okta"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.2002736842105263,
+      "passed": true,
+      "acquisition_mappings": {}
+    },
+    {
+      "category": "Security Analytics",
+      "text_preview": "Splunk Enterprise Security correlates threat intelligence from multiple sources",
+      "expected": [
+        "splunk"
+      ],
+      "detected": [
+        "splunk"
+      ],
+      "intersection": [
+        "splunk"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.2,
+      "passed": true,
+      "acquisition_mappings": {}
+    },
+    {
+      "category": "Migration Scenario",
+      "text_preview": "Enterprise customers migrate from VMware vSphere to Microsoft Hyper-V following ...",
+      "expected": [
+        "broadcom",
+        "microsoft",
+        "vmware"
+      ],
+      "detected": [
+        "broadcom",
+        "microsoft",
+        "vmware"
+      ],
+      "intersection": [
+        "broadcom",
+        "microsoft",
+        "vmware"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.5445248120300752,
+      "passed": true,
+      "acquisition_mappings": {
+        "vmware": "broadcom"
+      }
+    },
+    {
+      "category": "Multi-Vendor Security",
+      "text_preview": "Cisco Catalyst switches integrate with Fortinet FortiGate firewalls and CrowdStr...",
+      "expected": [
+        "cisco",
+        "crowdstrike",
+        "fortinet"
+      ],
+      "detected": [
+        "cisco",
+        "crowdstrike",
+        "fortinet"
+      ],
+      "intersection": [
+        "cisco",
+        "crowdstrike",
+        "fortinet"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.2992105263157895,
+      "passed": true,
+      "acquisition_mappings": {}
+    },
+    {
+      "category": "Cloud Competition",
+      "text_preview": "Oracle Cloud Infrastructure competes with AWS and Microsoft Azure for enterprise...",
+      "expected": [
+        "aws",
+        "microsoft",
+        "oracle"
+      ],
+      "detected": [
+        "aws",
+        "microsoft",
+        "oracle"
+      ],
+      "intersection": [
+        "aws",
+        "microsoft",
+        "oracle"
+      ],
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confidence": 0.21821052631578947,
+      "passed": true,
+      "acquisition_mappings": {}
+    }
+  ],
+  "database_stats": {
+    "total_companies": 95,
+    "total_aliases": 303,
+    "acquisition_mappings": 52
+  }
+}
