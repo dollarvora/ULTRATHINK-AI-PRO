@@ -29,8 +29,8 @@ class BaseFetcher(ABC):
         self.enabled = self.source_config.get('enabled', True)
 
         # Keywords and vendors for scoring - Fixed to match runtime config structure
-        self.keywords = config['keywords'].get('pricing', [])
-        self.urgency_keywords = config['keywords'].get('urgency_indicators', [])
+        self.keywords = config['keywords'].get('pricing_keywords', [])
+        self.urgency_keywords = config['keywords'].get('urgency_high', [])
         
         # Enhanced keyword categories for enterprise intelligence
         self.price_point_keywords = config['keywords'].get('price_point_intelligence', [])
@@ -39,6 +39,12 @@ class BaseFetcher(ABC):
         self.industry_keywords = config['keywords'].get('industry_verticals', [])
         self.economic_keywords = config['keywords'].get('economic_conditions', [])
         self.tech_trend_keywords = config['keywords'].get('technology_trends', [])
+        self.ma_intelligence_keywords = config['keywords'].get('ma_intelligence', [])
+        
+        # ENHANCED: CNAPP and Cloud Security Intelligence Keywords
+        self.cnapp_keywords = config['keywords'].get('cnapp_pricing_intelligence', [])
+        self.cnapp_cloud_security_keywords = config['keywords'].get('cnapp_cloud_security', [])
+        self.channel_intelligence_keywords = config['keywords'].get('channel_intelligence', [])
         
         # ENHANCED: MSP and Security Intelligence Keywords for better scoring
         self.msp_keywords = [
@@ -78,6 +84,12 @@ class BaseFetcher(ABC):
             self._economic_pattern = self._compile_pattern_list(self.economic_keywords)
             self._tech_trend_pattern = self._compile_pattern_list(self.tech_trend_keywords)
             self._vendor_pattern = self._compile_pattern_list(self.vendors)
+            self._ma_intelligence_pattern = self._compile_pattern_list(self.ma_intelligence_keywords)
+            
+            # ENHANCED: Compile CNAPP and Cloud Security patterns for better scoring
+            self._cnapp_pattern = self._compile_pattern_list(self.cnapp_keywords)
+            self._cnapp_cloud_security_pattern = self._compile_pattern_list(self.cnapp_cloud_security_keywords)
+            self._channel_intelligence_pattern = self._compile_pattern_list(self.channel_intelligence_keywords)
             
             # ENHANCED: Compile MSP and Security patterns for better scoring
             self._msp_pattern = self._compile_pattern_list(self.msp_keywords)
@@ -85,8 +97,9 @@ class BaseFetcher(ABC):
             
             total_keywords = len(self.keywords + self.urgency_keywords + self.price_point_keywords + 
                                self.competitive_keywords + self.financial_keywords + self.industry_keywords + 
-                               self.economic_keywords + self.tech_trend_keywords + self.msp_keywords + 
-                               self.security_keywords)
+                               self.economic_keywords + self.tech_trend_keywords + self.ma_intelligence_keywords +
+                               self.cnapp_keywords + self.cnapp_cloud_security_keywords + self.channel_intelligence_keywords +
+                               self.msp_keywords + self.security_keywords)
             self.logger.info(f"✅ Compiled {total_keywords} keyword patterns for enterprise performance")
             
         except Exception as e:
@@ -101,6 +114,10 @@ class BaseFetcher(ABC):
             self._economic_pattern = None
             self._tech_trend_pattern = None
             self._vendor_pattern = None
+            self._ma_intelligence_pattern = None
+            self._cnapp_pattern = None
+            self._cnapp_cloud_security_pattern = None
+            self._channel_intelligence_pattern = None
             self._msp_pattern = None
             self._security_pattern = None
 
@@ -178,6 +195,8 @@ class BaseFetcher(ABC):
         - Competitive Advantage (20%)
         - Strategic Value (15%)
         - Urgency Factor (10%)
+        + MSP Context Multiplier (1.5x when MSP context detected)
+        + Partnership Intelligence Boosts (Microsoft, Channel, Partner Tier, Business Relationship)
         """
         text_lower = text.lower()
         
@@ -199,7 +218,7 @@ class BaseFetcher(ABC):
             urgency_factor_score = self._calculate_urgency_factor(text, text_lower)
             
             # Calculate weighted Revenue Impact Score
-            revenue_impact_score = (
+            base_revenue_impact_score = (
                 immediate_revenue_score * 0.30 +
                 margin_opportunity_score * 0.25 +
                 competitive_advantage_score * 0.20 +
@@ -207,19 +226,32 @@ class BaseFetcher(ABC):
                 urgency_factor_score * 0.10
             )
             
+            # ENHANCED: MSP Context Detection and Multiplier
+            msp_context_multiplier = self._detect_msp_context(text, text_lower)
+            revenue_impact_score = base_revenue_impact_score * msp_context_multiplier
+            
+            # ENHANCED: Partnership Intelligence Boosts
+            partnership_intelligence_boost = self._calculate_partnership_intelligence_boost(text, text_lower)
+            revenue_impact_score += partnership_intelligence_boost
+            
             # ENHANCED: Business Context Scoring - MSP and Security Intelligence Boost
             business_context_boost = self._calculate_business_context_boost(text, text_lower)
             revenue_impact_score += business_context_boost
             
             # Enhanced logging for high-scoring or business critical content
-            if revenue_impact_score >= 5.0 or business_context_boost > 0 or any(term in text_lower for term in ['vcsp', 'program shutdown', 'partner program', 'thousands of partners']):
+            if revenue_impact_score >= 5.0 or business_context_boost > 0 or partnership_intelligence_boost > 0 or msp_context_multiplier > 1.0 or any(term in text_lower for term in ['vcsp', 'program shutdown', 'partner program', 'thousands of partners']):
                 self.logger.info(f"🎯 REVENUE IMPACT SCORING - Text: '{text[:100]}...'")
                 self.logger.info(f"💰 Total Revenue Impact Score: {revenue_impact_score:.1f}")
+                self.logger.info(f"   📊 Base Score: {base_revenue_impact_score:.1f}")
                 self.logger.info(f"   📊 Immediate Revenue (30%): {immediate_revenue_score:.1f}")
                 self.logger.info(f"   📈 Margin Opportunity (25%): {margin_opportunity_score:.1f}")
                 self.logger.info(f"   ⚔️ Competitive Advantage (20%): {competitive_advantage_score:.1f}")
                 self.logger.info(f"   🎯 Strategic Value (15%): {strategic_value_score:.1f}")
                 self.logger.info(f"   🚨 Urgency Factor (10%): {urgency_factor_score:.1f}")
+                if msp_context_multiplier > 1.0:
+                    self.logger.info(f"   🔥 MSP Context Multiplier: {msp_context_multiplier:.1f}x")
+                if partnership_intelligence_boost > 0:
+                    self.logger.info(f"   🤝 Partnership Intelligence Boost: +{partnership_intelligence_boost:.1f}")
                 if business_context_boost > 0:
                     self.logger.info(f"   🚀 Business Context Boost: +{business_context_boost:.1f}")
             
@@ -246,6 +278,18 @@ class BaseFetcher(ABC):
             if indicator in text_lower:
                 score += 1.5
         
+        # ENHANCED: Pricing change indicators (critical for CNAPP intelligence)
+        pricing_change_indicators = [
+            'pricing doubled', 'price doubled', 'pricing increase', 'price increase', 
+            'cost increase', 'pricing overhaul', 'price overhaul', 'pricing change',
+            'price change', 'pricing adjustment', 'price adjustment', 'pricing model',
+            'pricing sees', 'pricing has', 'dramatic increase', 'unprecedented increase',
+            'significant increase', 'substantial increase', 'major increase'
+        ]
+        for indicator in pricing_change_indicators:
+            if indicator in text_lower:
+                score += 3.0  # High boost for pricing changes
+        
         return min(score, 10.0)  # Cap at 10
 
     def _calculate_margin_opportunity(self, text: str, text_lower: str) -> float:
@@ -263,6 +307,24 @@ class BaseFetcher(ABC):
         # Vendor relationship changes
         vendor_matches = self._vendor_pattern.findall(text) if self._vendor_pattern else []
         score += len(vendor_matches) * 1.0  # Vendor mentions
+        
+        # M&A Intelligence as margin opportunity (acquisitions create pricing power)
+        if self._ma_intelligence_pattern:
+            ma_matches = self._ma_intelligence_pattern.findall(text)
+            if ma_matches:
+                score += 2.5  # M&A intelligence indicates margin opportunity
+        
+        # CNAPP Intelligence as margin opportunity (cloud security pricing power)
+        if self._cnapp_pattern:
+            cnapp_matches = self._cnapp_pattern.findall(text)
+            if cnapp_matches:
+                score += 3.0  # CNAPP intelligence indicates high margin opportunity
+        
+        # CNAPP Cloud Security Intelligence as margin opportunity
+        if self._cnapp_cloud_security_pattern:
+            cnapp_cloud_matches = self._cnapp_cloud_security_pattern.findall(text)
+            if cnapp_cloud_matches:
+                score += 2.0  # Cloud security intelligence indicates margin opportunity
         
         # Margin-specific terms
         margin_indicators = ['margin', 'profit', 'discount', 'rebate', 'commission', 'markup']
@@ -306,6 +368,18 @@ class BaseFetcher(ABC):
         economic_matches = self._economic_pattern.findall(text) if self._economic_pattern else []
         score += len(economic_matches) * 1.0  # Economic context
         
+        # M&A Intelligence as strategic value (acquisitions are strategic moves)
+        if self._ma_intelligence_pattern:
+            ma_matches = self._ma_intelligence_pattern.findall(text)
+            if ma_matches:
+                score += 2.0  # M&A intelligence has high strategic value
+        
+        # Channel Intelligence as strategic value (partner relationships are strategic)
+        if self._channel_intelligence_pattern:
+            channel_matches = self._channel_intelligence_pattern.findall(text)
+            if channel_matches:
+                score += 2.5  # Channel intelligence has high strategic value
+        
         # Strategic terms
         strategic_terms = ['strategy', 'strategic', 'portfolio', 'roadmap', 'vision', 'future']
         for term in strategic_terms:
@@ -329,6 +403,153 @@ class BaseFetcher(ABC):
                 score += 2.0
         
         return min(score, 10.0)  # Cap at 10
+    
+    def _detect_msp_context(self, text: str, text_lower: str) -> float:
+        """Detect MSP context and return appropriate multiplier"""
+        msp_context_indicators = [
+            'msp', 'managed service provider', 'service provider', 'channel partner',
+            'reseller', 'distributor', 'var', 'value added reseller', 'solution provider',
+            'system integrator', 'si', 'consulting partner', 'partner program',
+            'channel program', 'partner tier', 'partner level', 'partner status',
+            'partner portal', 'partner agreement', 'partner relationship',
+            'partner benefits', 'partner requirements', 'partner certification',
+            'partner training', 'partner support', 'partner enablement',
+            'vcsp', 'vcp', 'csp', 'cloud solution provider', 'cloud service provider',
+            'microsoft partner', 'microsoft partnership', 'microsoft channel',
+            'microsoft reseller', 'microsoft distributor', 'microsoft var',
+            'azure partner', 'office 365 partner', 'dynamics partner',
+            'enterprise agreement', 'ea', 'select plus', 'open license',
+            'volume licensing', 'vlsc', 'volume licensing service center'
+        ]
+        
+        for indicator in msp_context_indicators:
+            if indicator in text_lower:
+                self.logger.info(f"🔥 MSP CONTEXT DETECTED: '{indicator}' in '{text[:80]}...'")
+                return 1.5  # 1.5x multiplier for MSP context
+        
+        return 1.0  # No multiplier for non-MSP content
+    
+    def _calculate_partnership_intelligence_boost(self, text: str, text_lower: str) -> float:
+        """Calculate partnership intelligence boost for critical MSP ecosystem changes"""
+        boost_score = 0.0
+        
+        # Microsoft partnership changes: +2.5 boost
+        microsoft_partnership_patterns = [
+            r'microsoft.*business.*relationship',
+            r'microsoft.*partnership.*chang',
+            r'microsoft.*partner.*program.*chang',
+            r'microsoft.*channel.*chang',
+            r'microsoft.*reseller.*program.*chang',
+            r'microsoft.*distributor.*program.*chang',
+            r'microsoft.*var.*program.*chang',
+            r'microsoft.*csp.*program.*chang',
+            r'microsoft.*vcsp.*program.*chang',
+            r'microsoft.*partnership.*modification',
+            r'microsoft.*partnership.*update',
+            r'microsoft.*partnership.*restructur',
+            r'microsoft.*business.*relationship.*chang',
+            r'microsoft.*announces.*channel',
+            r'microsoft.*announces.*partner',
+            r'microsoft.*announces.*program'
+        ]
+        
+        for pattern in microsoft_partnership_patterns:
+            import re
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                boost_score += 3.0
+                self.logger.info(f"🤝 MICROSOFT PARTNERSHIP BOOST: +3.0 for pattern '{pattern}' in '{text[:80]}...'")
+                break
+        
+        # Channel program modifications: +2.0 boost
+        channel_program_patterns = [
+            r'channel.*program.*chang',
+            r'channel.*program.*modification',
+            r'channel.*program.*update',
+            r'channel.*program.*restructur',
+            r'channel.*program.*overhaul',
+            r'channel.*program.*reform',
+            r'channel.*strategy.*chang',
+            r'channel.*strategy.*shift',
+            r'channel.*model.*chang',
+            r'partner.*program.*chang',
+            r'partner.*program.*modification',
+            r'partner.*program.*update',
+            r'partner.*program.*restructur',
+            r'reseller.*program.*chang',
+            r'distributor.*program.*chang',
+            r'var.*program.*chang',
+            r'csp.*program.*chang',
+            r'vcsp.*program.*chang'
+        ]
+        
+        for pattern in channel_program_patterns:
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                boost_score += 2.0
+                self.logger.info(f"🔄 CHANNEL PROGRAM BOOST: +2.0 for pattern '{pattern}' in '{text[:80]}...'")
+                break
+        
+        # Partner tier changes: +2.0 boost
+        partner_tier_patterns = [
+            r'partner.*tier.*chang',
+            r'partner.*level.*chang',
+            r'partner.*status.*chang',
+            r'partner.*certification.*chang',
+            r'partner.*accreditation.*chang',
+            r'partner.*qualification.*chang',
+            r'partner.*requirements.*chang',
+            r'partner.*benefits.*chang',
+            r'competency.*requirements.*chang',
+            r'gold.*partner',
+            r'silver.*partner',
+            r'authorized.*partner',
+            r'certified.*partner',
+            r'premier.*partner',
+            r'elite.*partner',
+            r'tier.*chang.*gold',
+            r'tier.*chang.*silver',
+            r'tier.*chang.*status',
+            r'tier.*chang.*certification',
+            r'tier.*chang.*requirements'
+        ]
+        
+        for pattern in partner_tier_patterns:
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                boost_score += 4.0
+                self.logger.info(f"🏆 PARTNER TIER BOOST: +4.0 for pattern '{pattern}' in '{text[:80]}...'")
+                break
+        
+        # Business relationship changes: +2.5 boost
+        business_relationship_patterns = [
+            r'business.*relationship.*chang',
+            r'business.*relationship.*shift',
+            r'business.*relationship.*modification',
+            r'business.*relationship.*update',
+            r'business.*relationship.*restructur',
+            r'business.*relationship.*reform',
+            r'business.*relationship.*overhaul',
+            r'commercial.*relationship.*chang',
+            r'commercial.*partnership.*chang',
+            r'strategic.*relationship.*chang',
+            r'strategic.*partnership.*chang',
+            r'vendor.*relationship.*chang',
+            r'supplier.*relationship.*chang',
+            r'partnership.*model.*chang',
+            r'go-to-market.*relationship.*chang',
+            r'sales.*relationship.*chang',
+            r'distribution.*relationship.*chang'
+        ]
+        
+        for pattern in business_relationship_patterns:
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                boost_score += 3.0
+                self.logger.info(f"🎯 BUSINESS RELATIONSHIP BOOST: +3.0 for pattern '{pattern}' in '{text[:80]}...'")
+                break
+        
+        return min(boost_score, 8.0)  # Cap at 8.0 to prevent excessive scoring
 
     def _calculate_business_context_boost(self, text: str, text_lower: str) -> float:
         """Business Context Scoring - MSP and Security Intelligence Boost"""
@@ -406,7 +627,311 @@ class BaseFetcher(ABC):
                 self.logger.info(f"🎯 SECURITY PERFORMANCE BOOST: +1.0 for performance issues: '{text[:80]}...'")
                 break
         
-        return min(boost_score, 3.0)  # Cap boost at 3.0 to maintain balance
+        # M&A Intelligence Boost - Critical for post-acquisition monetization patterns
+        ma_boost = self._calculate_ma_intelligence_boost(text, text_lower)
+        if ma_boost > 0:
+            boost_score += ma_boost
+            self.logger.info(f"🎯 M&A INTELLIGENCE BOOST: +{ma_boost:.1f} for M&A patterns: '{text[:80]}...'")
+        
+        # ENHANCED: Cloud Security Platform Intelligence Boost - Critical for CNAPP scoring
+        cloud_security_boost = self._calculate_cloud_security_platform_boost(text, text_lower)
+        if cloud_security_boost > 0:
+            boost_score += cloud_security_boost
+            self.logger.info(f"🔒 CLOUD SECURITY PLATFORM BOOST: +{cloud_security_boost:.1f} for CNAPP patterns: '{text[:80]}...'")
+        
+        return min(boost_score, 10.0)  # Increased cap to 10.0 for critical intelligence
+
+    def _calculate_ma_intelligence_boost(self, text: str, text_lower: str) -> float:
+        """M&A Intelligence Boost - Critical for post-acquisition monetization patterns"""
+        boost_score = 0.0
+        
+        # M&A Intelligence Pattern Matching using compiled patterns
+        if self._ma_intelligence_pattern:
+            ma_matches = self._ma_intelligence_pattern.findall(text)
+            if ma_matches:
+                boost_score += 2.5  # Base M&A intelligence boost (increased)
+                self.logger.info(f"🎯 M&A PATTERN MATCH: +2.5 for compiled patterns: '{text[:80]}...'")
+        
+        # Post-acquisition audits: +3.0 boost
+        post_acquisition_audit_patterns = [
+            r'post-acquisition\s+audit',
+            r'post-acquisition\s+audits',
+            r'post-acquisition\s+licensing',
+            r'post-acquisition\s+monetization',
+            r'post-acquisition\s+enforcement',
+            r'post-acquisition\s+compliance',
+            r'begins\s+auditing',
+            r'starts\s+auditing',
+            r'conducting\s+audits',
+            r'auditing\s+organizations',
+            r'auditing\s+customers',
+            r'auditing\s+clients'
+        ]
+        
+        for pattern in post_acquisition_audit_patterns:
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                boost_score += 3.0  # High boost for post-acquisition audits
+                self.logger.info(f"🎯 POST-ACQUISITION AUDIT BOOST: +3.0 for audit patterns: '{text[:80]}...'")
+                break
+        
+        # License enforcement: +3.0 boost
+        license_enforcement_patterns = [
+            r'license\s+enforcement',
+            r'license\s+audits',
+            r'license\s+compliance',
+            r'license\s+review',
+            r'license\s+verification',
+            r'license\s+reconciliation',
+            r'licensing\s+overhaul',
+            r'licensing\s+enforcement',
+            r'forced\s+migration',
+            r'mandatory\s+migration',
+            r'compliance\s+audit',
+            r'usage\s+audit'
+        ]
+        
+        for pattern in license_enforcement_patterns:
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                boost_score += 3.0  # High boost for license enforcement
+                self.logger.info(f"🎯 LICENSE ENFORCEMENT BOOST: +3.0 for license patterns: '{text[:80]}...'")
+                break
+        
+        # Broadcom/VMware specific: +2.0 additional boost
+        broadcom_vmware_patterns = [
+            r'broadcom\s+vmware',
+            r'vmware\s+by\s+broadcom',
+            r'broadcom\s+audit',
+            r'broadcom\s+begins',
+            r'broadcom\s+starts',
+            r'broadcom.*audit',
+            r'vmware.*broadcom.*audit',
+            r'broadcom.*vmware.*audit'
+        ]
+        
+        for pattern in broadcom_vmware_patterns:
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                boost_score += 2.0  # Additional boost for Broadcom/VMware specific patterns
+                self.logger.info(f"🎯 BROADCOM/VMWARE BOOST: +2.0 for specific patterns: '{text[:80]}...'")
+                break
+        
+        # Acquisition monetization: +3.0 boost
+        acquisition_monetization_patterns = [
+            r'acquisition\s+monetization',
+            r'acquisition\s+strategy',
+            r'acquisition\s+integration',
+            r'merger\s+monetization',
+            r'merger\s+integration',
+            r'merger\s+audit',
+            r'merger\s+compliance'
+        ]
+        
+        for pattern in acquisition_monetization_patterns:
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                boost_score += 3.0  # High boost for acquisition monetization
+                self.logger.info(f"🎯 ACQUISITION MONETIZATION BOOST: +3.0 for monetization patterns: '{text[:80]}...'")
+                break
+        
+        # Business impact multiplier for enterprise-scale M&A patterns
+        enterprise_scale_patterns = [
+            r'organizations\s+using',
+            r'customers\s+using',
+            r'clients\s+using',
+            r'enterprise\s+customers',
+            r'business\s+customers',
+            r'customer\s+base',
+            r'client\s+base'
+        ]
+        
+        for pattern in enterprise_scale_patterns:
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                boost_score += 1.0  # Additional boost for enterprise scale
+                self.logger.info(f"🎯 ENTERPRISE SCALE BOOST: +1.0 for enterprise patterns: '{text[:80]}...'")
+                break
+        
+        return min(boost_score, 6.5)  # Cap M&A boost at 6.5 for critical M&A intelligence
+
+    def _calculate_cloud_security_platform_boost(self, text: str, text_lower: str) -> float:
+        """Cloud Security Platform Intelligence Boost - Critical for CNAPP scoring consistency"""
+        import re
+        boost_score = 0.0
+        
+        # CNAPP Platform Intelligence Pattern Matching using compiled patterns
+        if self._cnapp_pattern:
+            cnapp_matches = self._cnapp_pattern.findall(text)
+            if cnapp_matches:
+                boost_score += 3.0  # High boost for CNAPP platform intelligence
+                self.logger.info(f"🔒 CNAPP PLATFORM MATCH: +3.0 for CNAPP patterns: '{text[:80]}...'")
+        
+        # CNAPP Cloud Security Pattern Matching using compiled patterns
+        if self._cnapp_cloud_security_pattern:
+            cnapp_cloud_matches = self._cnapp_cloud_security_pattern.findall(text)
+            if cnapp_cloud_matches:
+                boost_score += 2.5  # Significant boost for cloud security patterns
+                self.logger.info(f"🔒 CNAPP CLOUD SECURITY MATCH: +2.5 for cloud security patterns: '{text[:80]}...'")
+        
+        # Cloud Security Platform Pricing Intelligence: +3.0 boost
+        cloud_security_pricing_patterns = [
+            r'cnapp.*pricing.*doubled',
+            r'cloud.*security.*platform.*pricing.*doubled',
+            r'container.*security.*pricing.*doubled',
+            r'kubernetes.*security.*pricing.*doubled',
+            r'cloud.*workload.*protection.*pricing.*doubled',
+            r'cwpp.*pricing.*doubled',
+            r'cspm.*pricing.*doubled',
+            r'ciem.*pricing.*doubled',
+            r'cloud.*security.*posture.*management.*pricing',
+            r'cloud.*infrastructure.*entitlement.*management.*pricing',
+            r'cloud.*native.*application.*protection.*platform.*pricing',
+            r'devsecops.*pricing.*doubled',
+            r'shift-left.*security.*pricing.*doubled',
+            r'runtime.*security.*pricing.*doubled',
+            r'vulnerability.*management.*pricing.*doubled',
+            r'compliance.*management.*pricing.*doubled',
+            r'policy.*as.*code.*pricing.*doubled',
+            r'infrastructure.*as.*code.*security.*pricing',
+            r'api.*security.*pricing.*doubled',
+            r'zero.*trust.*security.*pricing.*doubled',
+            r'threat.*detection.*pricing.*doubled',
+            r'security.*orchestration.*pricing.*doubled',
+            r'managed.*security.*services.*pricing.*doubled',
+            r'security.*as.*a.*service.*pricing.*doubled'
+        ]
+        
+        for pattern in cloud_security_pricing_patterns:
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                boost_score += 3.0  # High boost for cloud security pricing intelligence
+                self.logger.info(f"🔒 CLOUD SECURITY PRICING BOOST: +3.0 for pricing pattern '{pattern}': '{text[:80]}...'")
+                break
+        
+        # Cloud Security Platform Cost Increase: +2.5 boost
+        cloud_security_cost_patterns = [
+            r'cnapp.*cost.*increase',
+            r'cloud.*security.*platform.*cost.*increase',
+            r'container.*security.*cost.*increase',
+            r'kubernetes.*security.*cost.*increase',
+            r'cloud.*workload.*protection.*cost.*increase',
+            r'cwpp.*cost.*increase',
+            r'cspm.*cost.*increase',
+            r'ciem.*cost.*increase',
+            r'cloud.*security.*posture.*management.*cost',
+            r'cloud.*infrastructure.*entitlement.*management.*cost',
+            r'devsecops.*cost.*increase',
+            r'shift-left.*security.*cost.*increase',
+            r'runtime.*security.*cost.*increase',
+            r'vulnerability.*management.*cost.*increase',
+            r'compliance.*management.*cost.*increase',
+            r'policy.*as.*code.*cost.*increase',
+            r'api.*security.*cost.*increase',
+            r'zero.*trust.*security.*cost.*increase',
+            r'threat.*detection.*cost.*increase',
+            r'security.*orchestration.*cost.*increase',
+            r'managed.*security.*services.*cost.*increase',
+            r'security.*as.*a.*service.*cost.*increase'
+        ]
+        
+        for pattern in cloud_security_cost_patterns:
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                boost_score += 2.5  # Significant boost for cloud security cost increase
+                self.logger.info(f"🔒 CLOUD SECURITY COST BOOST: +2.5 for cost pattern '{pattern}': '{text[:80]}...'")
+                break
+        
+        # Cloud Security Platform Overhaul: +2.0 boost
+        cloud_security_overhaul_patterns = [
+            r'cnapp.*pricing.*overhaul',
+            r'cloud.*security.*platform.*pricing.*overhaul',
+            r'container.*security.*pricing.*overhaul',
+            r'kubernetes.*security.*pricing.*overhaul',
+            r'cloud.*workload.*protection.*pricing.*overhaul',
+            r'cwpp.*pricing.*overhaul',
+            r'cspm.*pricing.*overhaul',
+            r'ciem.*pricing.*overhaul',
+            r'cloud.*security.*posture.*management.*pricing.*overhaul',
+            r'cloud.*infrastructure.*entitlement.*management.*pricing.*overhaul',
+            r'devsecops.*pricing.*overhaul',
+            r'shift-left.*security.*pricing.*overhaul',
+            r'runtime.*security.*pricing.*overhaul',
+            r'vulnerability.*management.*pricing.*overhaul',
+            r'compliance.*management.*pricing.*overhaul',
+            r'policy.*as.*code.*pricing.*overhaul',
+            r'api.*security.*pricing.*overhaul',
+            r'zero.*trust.*security.*pricing.*overhaul',
+            r'threat.*detection.*pricing.*overhaul',
+            r'security.*orchestration.*pricing.*overhaul',
+            r'managed.*security.*services.*pricing.*overhaul',
+            r'security.*as.*a.*service.*pricing.*overhaul'
+        ]
+        
+        for pattern in cloud_security_overhaul_patterns:
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                boost_score += 2.0  # Boost for cloud security pricing overhaul
+                self.logger.info(f"🔒 CLOUD SECURITY OVERHAUL BOOST: +2.0 for overhaul pattern '{pattern}': '{text[:80]}...'")
+                break
+        
+        # Cloud Security Platform Vendor Intelligence: +1.5 boost
+        cloud_security_vendor_patterns = [
+            r'cnapp.*vendor.*pricing',
+            r'cloud.*security.*platform.*vendor.*pricing',
+            r'container.*security.*vendor.*pricing',
+            r'kubernetes.*security.*vendor.*pricing',
+            r'cloud.*workload.*protection.*vendor.*pricing',
+            r'cwpp.*vendor.*pricing',
+            r'cspm.*vendor.*pricing',
+            r'ciem.*vendor.*pricing',
+            r'prisma.*cloud.*pricing',
+            r'wiz.*pricing',
+            r'aqua.*security.*pricing',
+            r'snyk.*pricing',
+            r'twistlock.*pricing',
+            r'sysdig.*pricing',
+            r'lacework.*pricing',
+            r'orca.*security.*pricing',
+            r'defender.*for.*cloud.*pricing',
+            r'guardduty.*pricing',
+            r'security.*hub.*pricing',
+            r'inspector.*pricing'
+        ]
+        
+        for pattern in cloud_security_vendor_patterns:
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                boost_score += 1.5  # Boost for cloud security vendor pricing
+                self.logger.info(f"🔒 CLOUD SECURITY VENDOR BOOST: +1.5 for vendor pattern '{pattern}': '{text[:80]}...'")
+                break
+        
+        # Cloud Security Platform Enterprise Impact: +1.0 boost
+        cloud_security_enterprise_patterns = [
+            r'cloud.*security.*platform.*enterprise.*deployments',
+            r'cnapp.*enterprise.*deployments',
+            r'container.*security.*enterprise.*deployments',
+            r'kubernetes.*security.*enterprise.*deployments',
+            r'cloud.*workload.*protection.*enterprise.*deployments',
+            r'cwpp.*enterprise.*deployments',
+            r'cspm.*enterprise.*deployments',
+            r'ciem.*enterprise.*deployments',
+            r'cloud.*security.*affects.*enterprise',
+            r'cloud.*security.*hits.*enterprise',
+            r'cloud.*security.*impacts.*enterprise',
+            r'enterprise.*cloud.*security.*costs',
+            r'enterprise.*cloud.*security.*pricing',
+            r'enterprise.*cloud.*security.*budget'
+        ]
+        
+        for pattern in cloud_security_enterprise_patterns:
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                boost_score += 1.0  # Boost for enterprise cloud security impact
+                self.logger.info(f"🔒 CLOUD SECURITY ENTERPRISE BOOST: +1.0 for enterprise pattern '{pattern}': '{text[:80]}...'")
+                break
+        
+        return min(boost_score, 4.0)  # Cap cloud security boost at 4.0 for consistent scoring
 
     def _calculate_relevance_score_fallback(self, text: str) -> float:
         """Fallback scoring method using string matching"""
@@ -430,10 +955,16 @@ class BaseFetcher(ABC):
         industry_matches = [kw for kw in self.industry_keywords if kw.lower() in text_lower]
         economic_matches = [kw for kw in self.economic_keywords if kw.lower() in text_lower]
         tech_trend_matches = [kw for kw in self.tech_trend_keywords if kw.lower() in text_lower]
+        ma_intelligence_matches = [kw for kw in self.ma_intelligence_keywords if kw.lower() in text_lower]
+        cnapp_matches = [kw for kw in self.cnapp_keywords if kw.lower() in text_lower]
+        cnapp_cloud_matches = [kw for kw in self.cnapp_cloud_security_keywords if kw.lower() in text_lower]
+        channel_intelligence_matches = [kw for kw in self.channel_intelligence_keywords if kw.lower() in text_lower]
 
         enhanced_score = (len(price_point_matches) * 1.2 + len(competitive_matches) * 1.5 + 
                          len(financial_matches) * 1.0 + len(industry_matches) * 0.8 + 
-                         len(economic_matches) * 1.0 + len(tech_trend_matches) * 0.9)
+                         len(economic_matches) * 1.0 + len(tech_trend_matches) * 0.9 +
+                         len(ma_intelligence_matches) * 2.0 + len(cnapp_matches) * 3.0 + 
+                         len(cnapp_cloud_matches) * 2.0 + len(channel_intelligence_matches) * 2.5)
         score += enhanced_score
 
         # Vendor mentions (fallback)
